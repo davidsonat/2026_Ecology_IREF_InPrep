@@ -1,0 +1,60 @@
+---
+title: "NSF Equations"
+author: "Andy"
+date: "2025-01-21"
+output: pdf_document
+---
+
+# Prey Displacement Rate
+
+## Part 1: Predator Encounter Rate
+
+For part I, the encounter rate equation is:
+
+$$ Z = 2rN*sqrt(v^2 + s^2)$$
+
+where $s$ is prey speed (i.e., displacement rate), $v$ is predator speed, $N$ is predator density, and $r$ is the radius within which the predator can perceive prey.
+
+Scott simulates this equation for varying levels of $s$, and four constant levels of $v$ (0, 0.5, 1, and 2). Predator density and detection radius are kept constant such that $2rN = 1$.
+
+$v = 0$ would simply mean a sit-and-wait predator.
+
+
+## Part 2: Cost vs. Gain for Displacement Rate
+
+Scott mentions incorporating a Type II functional response, such that higher body velocity has diminishing returns due to time spent handling food.
+
+$$ = \frac{sR}{1 + shR}$$
+
+where $s$ is prey displacement rate, $h$ is handling time, and $R$ is resource density.
+
+
+## Combining the Two
+
+Scott describes the fitness curve (without predation, so the growth curve) using the equation from Part 2, and predation using the equation from Part 1.
+
+```{r}
+trait.vec <- seq(0, 1, by = 0.05)
+speed.vec <- 1 - trait.vec
+
+
+# These formulas are simplified by setting some of the values as constants
+# r is always assumed to be 1, while N, s, and v are manipulated values
+pred.curve <- function(N, v, s){
+  N*sqrt(v^2 + s^2)
+}
+
+# R is always assumed to be 1, while s and h are manipulated values
+growth.curve <- function(k, s, h){
+  (k * s)/(1 + s*h)
+}
+
+# Here is an example calculation
+example.df <- as.data.frame(speed.vec)
+example.df$pred <- pred.curve(N = 1.96116 * 0.45, v = 0.2, s = example.df$speed.vec)
+example.df$growth <- growth.curve( k = 9, s = example.df$speed.vec, h = 8 )
+
+plot( x = 1 - example.df$speed.vec, y = example.df$growth )
+plot( x = 1 - example.df$speed.vec, y = example.df$pred )
+```
+
