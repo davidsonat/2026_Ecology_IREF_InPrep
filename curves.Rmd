@@ -49,12 +49,106 @@ growth.curve <- function(k, s, h){
   (k * s)/(1 + s*h)
 }
 
-# Here is an example calculation
-example.df <- as.data.frame(speed.vec)
-example.df$pred <- pred.curve(N = 1.96116 * 0.45, v = 0.2, s = example.df$speed.vec)
-example.df$growth <- growth.curve( k = 9, s = example.df$speed.vec, h = 8 )
+# For temperature-dependence, we'll use a Gaussian curve here
+# b is the center of the peak, a is the height, and c is the width
+gauss.curve <- function( a, T0, b, c ){ 
+ a * exp( -0.5 * ( abs( T0 - b ) / c )^2 )
+}
 
-plot( x = 1 - example.df$speed.vec, y = example.df$growth )
-plot( x = 1 - example.df$speed.vec, y = example.df$pred )
+temp.gradient <- seq(5, 30, by = 1)
+plot( x = temp.gradient, y = gauss.curve( a = 1, T0 = temp.gradient, b = 25, c = 7.5) )
+```
+
+```{r}
+# Example 1: Cool-adapted prey and warm-adapted predator
+preytemp.curve <- gauss.curve( a = 1, T0 = temp.gradient, b = 20.5, c = 4)
+predtemp.curve <- gauss.curve( a = 1, T0 = temp.gradient, b = 23.5, c = 4)
+
+tpc.df <- cbind(temp.gradient, preytemp.curve, predtemp.curve)
+
+# Temperature affects pred velocity, prey velocity, prey handling time
+# Make a plot of the two curves side-by-side
+tpc.plot <- ggplot( data = tpc.df, aes( x = temp.gradient ) ) +
+  geom_smooth( aes( y = predtemp.curve ), se = FALSE, color = "black", linetype = "dashed" ) +
+  geom_smooth( aes( y = preytemp.curve ), se = FALSE, color = "black" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Rate") +
+  xlab("Temperature (°C)") +
+  xlim( 15, 25 ) +
+  geom_vline( xintercept = 20, color = "blue", size = 0.5 ) +
+  geom_vline( xintercept = 22.5, color = "red", size = 0.5 ) +
+  annotate( "text", x = 19.25, y = 0.3, label = "T1", color = "blue", size = 10/.pt  ) +
+  annotate( "text", x = 21.75, y = 0.3, label = "T2", color = "red", size = 10/.pt  ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
+```
+
+```{r}
+# Simulate twice. Use T1 = 20.25, T2 = 22.5.
+# Sim1
+prey.modifier <- gauss.curve( a = 1, T0 = 20, b = 20.5, c = 4)
+pred.modifier <- gauss.curve( a = 1, T0 = 20, b = 23.5, c = 4)
+
+example.df$pred <- pred.curve(N = 1.96116 * 0.45, v = pred.modifier * 0.2, s = prey.modifier * example.df$speed.vec)
+example.df$growth <- growth.curve(k = 9, s = prey.modifier * example.df$speed.vec, h = prey.modifier * 8)
+
+# Rescale axis
+example.df$growth <- example.df$growth / max( example.df$growth )
+example.df$pred <- ( example.df$growth / max( example.df$growth ) ) * example.df$pred
+
+
+# Find max value for fitness
+example.df$fitness <- example.df$growth - example.df$pred
+
+ex1.plot <- ggplot( example.df, aes( x = speed.vec ) ) +
+  geom_smooth( aes( y = pred ), se = FALSE, color = "red", linetype = "dashed" ) +
+  geom_smooth( aes( y = growth ), se = FALSE ) +
+  geom_vline( xintercept = 0.3, color = "green", linetype = "dashed", size = 0.75) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Fitness, growth, and mortality") +
+  xlab("Trait") +
+  annotate( "text", x = 0.9, y = 0.1, label = "T1", color = "blue", size = 10/.pt  ) +
+  annotate( "text", x = 0.2, y = 0.9, label = "NCE = 0.21", size = 8/.pt ) +
+  annotate( "text", x = 0.2, y = 0.5, label = "0.56", size = 8/.pt  ) +
+  annotate( "text", x = 0.2, y = 0.05, label = "CE = 0.23", size = 8/.pt  ) +
+  scale_x_reverse(expand = c(0, 0), limits = c(1, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
+
+```         
+         
+```{r}       
+# Sim2
+prey.modifier <- gauss.curve( a = 1, T0 = 22.5, b = 20.5, c = 4)
+pred.modifier <- gauss.curve( a = 1, T0 = 22.5, b = 23.5, c = 4)
+
+example.df$pred <- pred.curve(N = 1.96116 * 0.45, v = pred.modifier * 0.2, s = prey.modifier * example.df$speed.vec)
+example.df$growth <- growth.curve(k = 9, s = prey.modifier * example.df$speed.vec, h = prey.modifier * 8)
+
+# Rescale axis
+example.df$growth <- example.df$growth / max( example.df$growth )
+example.df$pred <- ( example.df$growth / max( example.df$growth ) ) * example.df$pred
+
+# Find max value for fitness
+example.df$fitness <- example.df$growth - example.df$pred
+
+ex2.plot <- ggplot( example.df, aes( x = speed.vec ) ) +
+  geom_smooth( aes( y = pred ), se = FALSE, color = "red", linetype = "dashed" ) +
+  geom_smooth( aes( y = growth ), se = FALSE ) +
+  geom_vline( xintercept = 0.35, color = "green", linetype = "dashed", size = 0.75) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Fitness, growth, and mortality") +
+  xlab("Trait") +
+  annotate( "text", x = 0.9, y = 0.1, label = "T2", color = "red", size = 10/.pt) +
+  annotate( "text", x = 0.2, y = 0.9, label = "NCE = 0.20", size = 8/.pt) +
+  annotate( "text", x = 0.2, y = 0.5, label = "0.54", size = 8/.pt) +
+  annotate( "text", x = 0.2, y = 0.05, label = "CE = 0.26", size = 8/.pt) +
+  scale_x_reverse(expand = c(0, 0), limits = c(1, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
+
+library(cowplot)
+tpc.fig <- plot_grid( tpc.plot, ex1.plot, ex2.plot, ncol = 1 )
+
+ggsave("tpcfig.png", plot = tpc.fig, dpi = 300)
 ```
 
