@@ -243,7 +243,7 @@ fig1_b.plot <- fig1_b.plot + theme(legend.position = "none")
 fig1.plot <- plot_grid( fig1_a.plot, fig1_b.plot, fig1_c.plot, ncol = 3, labels = "auto", label_y = 0.75, align = c("hv") )
 fig1.plot <- plot_grid( fig1.plot, fig1.legend, rel_heights = c(1, 0.1), ncol = 1)
 
-ggsave("fig1.png", plot = fig1.plot, dpi = 300)
+# ggsave("fig1.png", plot = fig1.plot, dpi = 300)
 
 ```
 
@@ -323,8 +323,54 @@ prey_h.plot <- prey_h.plot + theme( legend.position = "none" )
 iref.fig <- plot_grid( baseline.plot, preddens.plot, predmode.plot, prey_h.plot, ncol = 2, labels = "auto", align = c("hv") )
 iref.fig <- plot_grid( iref.fig, iref.legend, ncol = 1, rel_heights = c(1, 0.1) )
 
-ggsave("fig2.png", plot = iref.fig, dpi = 300)
+# ggsave("fig2.png", plot = iref.fig, dpi = 300)
 ```
+# Predator Density Effects
+
+For this last section, I'd like to make a figure illustrating the very simple, intuitive point that below a certain predator density, the optimal strategy is  actually to not respond at all.
+
+```{r, echo = FALSE}
+
+threshold.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
+colnames(threshold.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+threshold.df$trait <- trait.vec
+threshold.df$speed <- speed.vec
+h_val <- 8
+R_val <- 1
+cost_constant_val <- 9
+v_val <- 1
+k_val <- 0.45
+pred_constant_val <- 1.41421
+p_vec <- seq(0, 1, by = 0.05)
+
+thresh_plot.df <- as.data.frame( mat.or.vec( length(p_vec), 3 ) )
+colnames(thresh_plot.df) <- c("preddens", "optim", "relstr")
+
+
+for (i in 1:length(p_vec)){
+  
+threshold.df$growth_curve <- cost_constant_val * growth.curve( s = threshold.df$speed, R = R_val, h = h_val ) # Growth curve
+threshold.df$mort_curve <- pred_constant_val * p_vec[i] * pred.curve( k = k_val, v = v_val, s = threshold.df$speed ) # Mortality curve
+threshold.df$fitness <- threshold.df$growth_curve - threshold.df$mort_curve # fitness
+threshold.df$NCE_CE <- (1 - threshold.df$growth_curve)/threshold.df$mort_curve # NCE/CE
+
+thresh_plot.df$preddens[i] <- p_vec[i]
+thresh_plot.df$optim[i] <- threshold.df$trait[which(threshold.df$fitness == max(threshold.df$fitness))]
+thresh_plot.df$relstr[i] <- (1 - threshold.df$growth_curve[which(threshold.df$fitness == max(threshold.df$fitness))])/((1 - threshold.df$growth_curve[which(threshold.df$fitness == max(threshold.df$fitness))]) + threshold.df$mort_curve[which(threshold.df$fitness == max(threshold.df$fitness))])
+}
+
+thresh.plot <- ggplot( data = thresh_plot.df, aes( x = preddens, y = optim ) ) +
+  geom_point( ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Optimal Trait Value") +
+  xlab("Predator Density") +
+  scale_x_continuous(expand = c(0, 0) ) + 
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
+
+ggsave("fig3.png", plot = thresh.plot, dpi = 300)
+
+```
+
 
 
 # Temperature-Dependent Examples
