@@ -31,12 +31,6 @@ where $s$ is prey displacement rate, $h$ is handling time, and $R$ is resource d
 
 Scott describes the fitness curve (without predation, so the growth curve) using the equation from Part 2, and predation using the equation from Part 1.
 
-Questions for Scott: what is the cost constant? pred constant? P factor? How are those incorporated into the base equations?
-
-What range of parameters did he use for the figures in the grant? What are the baselines used for Fig. 2?
-
-Where is the analysis for resource intake rate?
-
 ```{r}
 # Generating the baseline curves
 trait.vec <- seq(0, 1, by = 0.01)
@@ -115,9 +109,9 @@ preddens.df$speed <- speed.vec
 h_val <- 8
 R_val <- 1
 cost_constant_val <- 9
-v_val <- 1 
+v_val <- 0.2 
 k_val <- 0.9 
-pred_constant_val <- 0.7071068
+pred_constant_val <- 0.98058
 
 preddens.df$growth_curve <- cost_constant_val * growth.curve( s = preddens.df$speed, R = R_val, h = h_val ) # Growth curve
 preddens.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = preddens.df$speed ) # Mortality curve
@@ -261,7 +255,7 @@ baseline.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
-  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed" ) +
+  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
   annotate( "text", x = baseline_optim + 0.15, y = 0.95, label = "NCE = 0.12", size = 7/.pt  ) +
   annotate( "text", x = baseline_optim + 0.15, y = 0.55, label = "0.66", size = 7/.pt  ) +
   annotate( "text", x = baseline_optim + 0.15, y = 0.075, label = "CE = 0.22", size = 7/.pt  ) +
@@ -277,10 +271,10 @@ preddens.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
-  geom_vline( xintercept = preddens_optim,  size = 0.5, linetype = "dashed" ) +
-  annotate( "text", x = preddens_optim + 0.15, y = 0.95, label = "NCE = 0.08", size = 7/.pt  ) +
-  annotate( "text", x = preddens_optim + 0.15, y = 0.8, label = "0.20", size = 7/.pt  ) +
-  annotate( "text", x = preddens_optim + 0.15, y = 0.6, label = "CE = 0.72", size = 7/.pt  ) +
+  geom_vline( xintercept = preddens_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  annotate( "text", x = preddens_optim + 0.15, y = 0.95, label = "NCE = 0.20", size = 7/.pt  ) +
+  annotate( "text", x = preddens_optim + 0.15, y = 0.45, label = "0.48", size = 7/.pt  ) +
+  annotate( "text", x = preddens_optim + 0.15, y = 0.15, label = "CE = 0.32", size = 7/.pt  ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
@@ -295,7 +289,7 @@ predmode.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
-  geom_vline( xintercept = predmode_optim,  size = 0.5, linetype = "dashed" ) +
+  geom_vline( xintercept = predmode_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
   annotate( "text", x = predmode_optim + 0.15, y = 0.95, label = "NCE = 0.09", size = 7/.pt  ) +
   annotate( "text", x = predmode_optim + 0.15, y = 0.8, label = "0.11", size = 7/.pt  ) +
   annotate( "text", x = predmode_optim + 0.15, y = 0.5, label = "CE = 0.80", size = 7/.pt  ) +
@@ -309,7 +303,7 @@ prey_h.plot <- ggplot( data = prey_h.df, aes( x = trait ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
-  geom_vline( xintercept = prey_h_optim,  size = 0.5, linetype = "dashed" ) +
+  geom_vline( xintercept = prey_h_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
   annotate( "text", x = prey_h_optim + 0.15, y = 0.8, label = "NCE = 0.29", size = 7/.pt  ) +
   annotate( "text", x = prey_h_optim + 0.15, y = 0.5, label = "0.19", size = 7/.pt  ) +
   annotate( "text", x = prey_h_optim + 0.15, y = 0.25, label = "CE = 0.52", size = 7/.pt  ) +
