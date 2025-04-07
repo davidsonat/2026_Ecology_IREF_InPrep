@@ -367,104 +367,60 @@ thresh.plot <- ggplot( data = thresh_plot.df, aes( x = preddens, y = optim ) ) +
   scale_x_continuous(expand = c(0, 0) ) + 
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
 
-ggsave("fig3.png", plot = thresh.plot, dpi = 300)
+# ggsave("fig3.png", plot = thresh.plot, dpi = 300)
 
 ```
 
+# Presence of Refuge Habitat
+
+```{r, echo = FALSE}
+## We'll start with the extreme case: what if there's a refuge with *no food* but *no predators*?
+
+# First, set up dataframe and important variables
+refuge.df <- as.data.frame( mat.or.vec( 25, 5 ) )
+colnames(refuge.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+refuge.df$proptime <- seq(0, 1, by = 1/24) # Prey can spend between 0 and 24 hours in the refuge, incremented by hours
+
+# For now, assume one constant speed by prey in both habitats
+# These constants come from the baseline scenario, i.e. Fig. 2 in the grant proposal
+# With the addition of some constants to describe conditions in the refuge, noted below
+h_val <- 8 # prey handling time
+R_val <- 1 # resource density outside of refuge
+R_refuge_val <- 0 # resource density inside refuge
+cost_constant_val <- 9 # a constant Scott applied to the growth curve to make the numbers cleaner
+s_val <- 0.5 # prey velocity
+v_val <- 0.2 # predator velocity
+k_val <- 0.45 # predator density outside refuge
+k_refuge_val <- 0 # predator density in refuge
+pred_constant_val <- 0.98058 # a constant Scott applied to the mortality curve to make the numbers cleaner
 
 
-# Temperature-Dependent Examples
+for ( i in 1:nrow( refuge.df ) ){ # For each possible value of proptime, calculate the total risk and mortality in a 24hr period
+refuge.df$growth_curve[i] <- (1 - refuge.df$proptime[i]) * ( cost_constant_val * growth.curve( s = s_val, R = R_val, h = h_val ) ) # Growth curve is simply how much food you can get in the time you spend outside of the refuge
 
-```{r, eval = FALSE}
-# Example 1: Cool-adapted prey and warm-adapted predator
-preytemp.curve <- gauss.curve( a = 1, T0 = temp.gradient, b = 20.5, c = 4)
-predtemp.curve <- gauss.curve( a = 1, T0 = temp.gradient, b = 23.5, c = 4)
+refuge.df$mort_curve[i] <- exp( ( ( refuge.df$proptime[i] ) * log( pred_constant_val * pred.curve( k = k_val, v = v_val, s =
+                                                                                            s_val ) ) ) ) * ( pred_constant_val * pred.curve( k = k_val, v = v_val, s =
+                                                                                            s_val ) )  # Mortality curve, since risk in the refuge is zero this only considers risk during time spent outside of the refuge
+}
 
-tpc.df <- cbind(temp.gradient, preytemp.curve, predtemp.curve)
+refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$mort_curve
+refuge.df$NCE_CE <- refuge.df$growth_curve / refuge.df$mort_curve
 
-# Temperature affects pred velocity, prey velocity, prey handling time
-# Make a plot of the two curves side-by-side
-tpc.plot <- ggplot( data = tpc.df, aes( x = temp.gradient ) ) +
-  geom_smooth( aes( y = predtemp.curve ), se = FALSE, color = "black", linetype = "dashed" ) +
-  geom_smooth( aes( y = preytemp.curve ), se = FALSE, color = "black" ) +
+refuge_optim <- refuge.df$proptime[which(refuge.df$fitness == max(refuge.df$fitness))]
+refuge_optim_fitness <- refuge.df$fitness[which(refuge.df$fitness == max(refuge.df$fitness))]
+refuge_optim_CE <- refuge.df$mort_curve[which(refuge.df$fitness == max(refuge.df$fitness))]
+refuge_optim_NCE <- 1 - refuge_optim_CE - refuge_optim_fitness
+
+ggplot( data = refuge.df, aes( x = proptime ) ) +
+  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
+  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Rate") +
-  xlab("Temperature (°C)") +
-  xlim( 15, 25 ) +
-  geom_vline( xintercept = 20, color = "blue", size = 0.5 ) +
-  geom_vline( xintercept = 22.5, color = "red", size = 0.5 ) +
-  annotate( "text", x = 19.25, y = 0.3, label = "T1", color = "blue", size = 10/.pt  ) +
-  annotate( "text", x = 21.75, y = 0.3, label = "T2", color = "red", size = 10/.pt  ) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
-```
-
-```{r, eval = FALSE}
-# Simulate twice. Use T1 = 20.25, T2 = 22.5.
-# Sim1
-prey.modifier <- gauss.curve( a = 1, T0 = 20, b = 20.5, c = 4)
-pred.modifier <- gauss.curve( a = 1, T0 = 20, b = 23.5, c = 4)
-
-example.df$pred <- pred.curve(N = 1.96116 * 0.45, v = pred.modifier * 0.2, s = prey.modifier * example.df$speed.vec)
-example.df$growth <- growth.curve(k = 9, s = prey.modifier * example.df$speed.vec, h = prey.modifier * 8)
-
-# Rescale axis
-example.df$growth <- example.df$growth / max( example.df$growth )
-example.df$pred <- ( example.df$growth / max( example.df$growth ) ) * example.df$pred
-
-
-# Find max value for fitness
-example.df$fitness <- example.df$growth - example.df$pred
-
-ex1.plot <- ggplot( example.df, aes( x = speed.vec ) ) +
-  geom_smooth( aes( y = pred ), se = FALSE, color = "red", linetype = "dashed" ) +
-  geom_smooth( aes( y = growth ), se = FALSE ) +
-  geom_vline( xintercept = 0.3, color = "green", linetype = "dashed", size = 0.75) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Fitness, growth, and mortality") +
-  xlab("Trait") +
-  annotate( "text", x = 0.9, y = 0.1, label = "T1", color = "blue", size = 10/.pt  ) +
-  annotate( "text", x = 0.2, y = 0.9, label = "NCE = 0.21", size = 8/.pt ) +
-  annotate( "text", x = 0.2, y = 0.5, label = "0.56", size = 8/.pt  ) +
-  annotate( "text", x = 0.2, y = 0.05, label = "CE = 0.23", size = 8/.pt  ) +
-  scale_x_reverse(expand = c(0, 0), limits = c(1, 0) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
-
-```         
-         
-```{r, eval = FALSE}
-# Sim2
-prey.modifier <- gauss.curve( a = 1, T0 = 22.5, b = 20.5, c = 4)
-pred.modifier <- gauss.curve( a = 1, T0 = 22.5, b = 23.5, c = 4)
-
-example.df$pred <- pred.curve(N = 1.96116 * 0.45, v = pred.modifier * 0.2, s = prey.modifier * example.df$speed.vec)
-example.df$growth <- growth.curve(k = 9, s = prey.modifier * example.df$speed.vec, h = prey.modifier * 8)
-
-# Rescale axis
-example.df$growth <- example.df$growth / max( example.df$growth )
-example.df$pred <- ( example.df$growth / max( example.df$growth ) ) * example.df$pred
-
-# Find max value for fitness
-example.df$fitness <- example.df$growth - example.df$pred
-
-ex2.plot <- ggplot( example.df, aes( x = speed.vec ) ) +
-  geom_smooth( aes( y = pred ), se = FALSE, color = "red", linetype = "dashed" ) +
-  geom_smooth( aes( y = growth ), se = FALSE ) +
-  geom_vline( xintercept = 0.35, color = "green", linetype = "dashed", size = 0.75) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Fitness, growth, and mortality") +
-  xlab("Trait") +
-  annotate( "text", x = 0.9, y = 0.1, label = "T2", color = "red", size = 10/.pt) +
-  annotate( "text", x = 0.2, y = 0.9, label = "NCE = 0.20", size = 8/.pt) +
-  annotate( "text", x = 0.2, y = 0.5, label = "0.54", size = 8/.pt) +
-  annotate( "text", x = 0.2, y = 0.05, label = "CE = 0.26", size = 8/.pt) +
-  scale_x_reverse(expand = c(0, 0), limits = c(1, 0) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
-
-library(cowplot)
-tpc.fig <- plot_grid( tpc.plot, ex1.plot, ex2.plot, ncol = 1 )
-
-ggsave("tpcfig.png", plot = tpc.fig, dpi = 300)
+  ylab("Growth and Mortality") +
+  xlab("Proportion of Time Spent in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
+         legend.position = "bottom" )
 ```
 
