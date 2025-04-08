@@ -151,7 +151,7 @@ Because we had to use $k_{refuge} = 0.001$ to avoid an error when taking its log
 \pagebreak
 # Scenario 2: Refuge with No Predators, But Increasing Food
 
-We will repeat the above calculations with different values for the resource density in the refuge ($R_{refuge}$), while keeping predator density in the refuge near zero ($k_{refuge} = 0.001$).
+We will repeat the above calculations with different values for the resource density in the refuge ($R_{refuge}$ = 0.25, 0.50, 0.99), while keeping predator density in the refuge near zero ($k_{refuge} = 0.001$). For reference, in the baseline scenario above, resource density outside of the refuge ($R$) is 1.
 
 ```{r, echo = FALSE, fig.height = 7}
 ## Scenario 2a
@@ -294,17 +294,17 @@ fig2.plot <- plot_grid( scen2a.plot, scen2b.plot, scen2c.plot, ncol = 1, labels 
 plot_grid( fig2.plot, fig2.legend, rel_heights = c(1, 0.1), ncol = 1)
 ```
 
-In the above figures, increasing $R_{refuge}$ flattens the growth curve as conditions inside the refuge become more similar to conditions outside of it. The optimal solution thus becomes spending progressively more time in the refuge. In panel c), the green line for the optimum isn't visible because it is at $x = 1$.
+In the above figures, increasing $R_{refuge}$ flattens the growth curve as conditions inside the refuge become more similar to conditions outside of it. The optimal solution thus becomes spending progressively more time in the refuge. In panel c), the green line for the optimum isn't visible because it is at $x = 1$, i.e., all time spent in refuge.
 \pagebreak
 
 # Scenario 3: An Increasingly "Unsafe" Refuge with Constant Food
 
-Here, we will hold food availability in the refuge at a constant but lower level than outside the refuge ($R_{refuge} = 0.5$) , while manipulating predator density within the refuge ($k_{refuge}$).
+Here, we will hold food availability in the refuge at a constant but lower level than outside the refuge ($R_{refuge} = 0.5$) , while manipulating predator density within the refuge ($k_{refuge}$ = 0.15, 0.30, 0.60). For reference, predator density outside of the refuge is set (as in all scenarios above) at $k = 0.45$.
 
 ```{r, echo = FALSE, fig.height = 7}
 ## Scenario 3a
 R_refuge_val <- 0.5 # resource density inside refuge
-k_refuge_val <- 0.25 # predator density inside refuge
+k_refuge_val <- 0.15 # predator density inside refuge
 
 # Growth curve
 # Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
@@ -350,7 +350,7 @@ scen3a.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
 
 ## Scenario 3b
 R_refuge_val <- 0.5 # resource density inside refuge
-k_refuge_val <- 0.5 # predator density inside refuge
+k_refuge_val <- 0.30 # predator density inside refuge
 
 # Growth curve
 # Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
@@ -396,7 +396,7 @@ scen3b.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
 
 ##Scenario 3c
 R_refuge_val <- 0.5 # resource density inside refuge
-k_refuge_val <- 0.99 # predator density inside refuge
+k_refuge_val <- 0.60 # predator density inside refuge
 
 # Growth curve
 # Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
@@ -440,8 +440,8 @@ scen3c.plot<- ggplot( data = refuge.df, aes( x = proptime ) ) +
 fig3.legend <- get_legend_35(scen3c.plot)
 scen3c.plot <- scen3c.plot + theme(legend.position = "none")
 
-fig3.plot <- plot_grid( scen3a.plot, scen3b.plot, scen3c.plot, ncol = 1, labels = c("a) k = 0.25", "b) k = 0.50", "c) k = 0.99"), label_size = 10, label_y = 1, label_x = 0.2, align = c("hv") )
+fig3.plot <- plot_grid( scen3a.plot, scen3b.plot, scen3c.plot, ncol = 1, labels = c("a) k = 0.15", "b) k = 0.30", "c) k = 0.60"), label_size = 10, label_y = 1, label_x = 0.2, align = c("hv") )
 plot_grid( fig3.plot, fig3.legend, rel_heights = c(1, 0.1), ncol = 1)
 ```
 
-The mortality curve first flattens and eventually inverts itself, as the lower resource density in the refuge ($R_{refuge} = 0.5$) eventually makes using the refuge no longer worthwhile for the prey. In all three cases, the horizontal lines signifying the optimal trait value are not visible, because they are at $x = 0$, i.e., no time spent in the refuge.
+The mortality curve first flattens and eventually inverts itself, as the lower resource density in the refuge ($R_{refuge} = 0.5$) eventually makes using the refuge no longer worthwhile for the prey. In panels b) and c), the horizontal lines signifying the optimal trait value are not visible, because they are at $x = 0$, i.e., no time spent in the refuge.
