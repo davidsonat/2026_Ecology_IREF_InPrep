@@ -1,7 +1,7 @@
 ---
 title: "Refuge Scenarios"
 author: "Andy"
-date: "2025-04-08"
+date: "2025-05-01"
 output: pdf_document
 ---
 ```{r, echo = FALSE, warning = FALSE}
@@ -28,13 +28,11 @@ The IREF already covers the cases where the predator and prey fully overlap spat
 It should be noted as well that Os's version of a sit-and-wait predator may be somewhat rare in most terrestrial systems, because arguably a predator that does not move at all to locate prey is similar to a filter feeder. What we've been calling a "sit-and-wait" predator he might actually call a "sit-and-pursue" predator.
 \pagebreak
 
-# Model Descriptions
+# Model Description
 
-For the following scenarios, we will explore a predator-prey system with a refuge from predation using the IREF from two different perspectives. 
+For the following scenarios, we will explore a predator-prey system with a refuge from predation using the IREF. 
 
-In the first chunk, we will use the IREF to calculate the optimal amount of time spent in the refuge (i.e., the proportion of time spent in the refuge will be the trait on the x-axis). To do so, we will assume that prey have some constant body velocity inside the refuge, and a separate constant velocity outside the refuge.
-
-In the second chunk, we will invert this scenario and calculate the optimal body velocity inside and outside of the refuge, given that prey spend a certain fixed proportion of their time in the refuge habitat.
+In brief, we will use the IREF to calculate the optimal amount of time for prey to spend in the refuge habitat (i.e., the proportion of time spent in the refuge will be the trait on the x-axis). To do so, we will assume that prey have some constant body velocity inside the refuge, and a separate constant velocity outside the refuge. We will derive these constant values for velocity by applying the IREF to each of the two habitat types separately.
 
 In both sets of scenarios, we will use the following equation for calculating encounter rate ($Z$) between the predator and prey:
 
@@ -77,47 +75,162 @@ growth.curve <- function(s, h, R){
 ```
 \pagebreak
 
-# Optimizing Refuge Use Given Velocity
+# Deriving Prey Speed in Habitats A and B
 
-In the first set of scenarios, we will hold prey velocity constant and optimize the amount of time prey spend in the refuge.
+We will begin by determining the rate at which the prey should forage inside and outside of the refuge. We'll start by generating the curves for the habitat outside the refuge --- we'll call it Habitat A. In Habitat A, predators are present at a moderate density ($k = 0.45$) but resources are plentiful ($R = 1$). We will assume prey handling time is constant, regardless of habitat choice ($h = 8$), and predator foraging rate will also be constant between habitats ($v = 0.2$).
 
-## Scenario 1: Refuge with No Predators, No Resources 
+This results in the following trait curves:
 
-Here, we will consider an extreme case: what if the refuge has no predators, but also very little food for the prey? For the prey's body velocity, we will assume that the optimal strategy inside the refuge is no reduction in body velocity, whereas outside the refuge, the prey will move around half as fast to avoid predators.
-
-```{r}
+```{r, echo = FALSE}
 # First, set up dataframe and important variables
-refuge.df <- as.data.frame( mat.or.vec( 25, 5 ) )
-colnames(refuge.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE") # For each level of proptime (proportion of time spent in refuge), we will calculate the two curves, the resulting fitness (1 - NCE - CE), and the relative strength of the NCE and CE (as NCE/CE)
-refuge.df$proptime <- seq(0, 1, by = 1/24) # Prey can spend between 1 and 24 hours out of the day in the refuge, incremented by hours
-# 1 was chosen as the starting point here simply because a later step requires taking the log of the growth curve calculation, so it can't be zero
+speed.vec <- seq(0, 1, by = 0.01)
+trait.vec <- 1 - speed.vec
+habitatA.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
+colnames(habitatA.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+habitatA.df$trait <- trait.vec
+habitatA.df$speed <- speed.vec
 
-# For now, assume one constant speed by prey in both habitats
-# The following constants come from the baseline scenario, i.e. Fig. 2 in the grant proposal
-# This means that at proptime = 0, the values for the trait curves will equal the ones shown in Fig. 2
-s_val <- 0.46 # prey velocity, this value for prey velocity is ~460 in Fig. 2
 h_val <- 8 # prey handling time
-R_val <- 1 # resource density outside of refuge
-cost_constant_val <- 9 # a constant Scott applied to the growth curve in the calcs to make the numbers cleaner
+R_val_A <- 1 # resource density outside of refuge
 v_val <- 0.2 # predator velocity
-k_val <- 0.45 # predator density outside refuge
+k_val_A <- 0.45 # predator density outside refuge
+cost_constant_val <- 9 # a constant Scott applied to the growth curve in the calcs to make the numbers cleaner
 pred_constant_val <- 0.98058 # a constant Scott applied in the calcs to the mortality curve to make the numbers cleaner
 
-# We will describe conditions in the refuge using two additional constants, each set to zero in this first simulation
-s_refuge_val <- 1
-R_refuge_val <- 0 # resource density inside refuge
-k_refuge_val <- 0.001 # predator density in refuge, this can't actually be zero because the log of it is taken later
+# Derive the trait curves
+habitatA.df$growth_curve <- cost_constant_val * growth.curve( s = habitatA.df$speed, R = R_val_A, h = h_val ) # Growth curve
+habitatA.df$mort_curve <- pred_constant_val * pred.curve( k = k_val_A, v = v_val, s = habitatA.df$speed ) # Mortality curve
+habitatA.df$fitness <- habitatA.df$growth_curve - habitatA.df$mort_curve # Fitness
+habitatA.df$NCE_CE <- (1 - habitatA.df$growth_curve)/habitatA.df$mort_curve # NCE/CE
+
+optim_A <- habitatA.df$trait[which(habitatA.df$fitness == max(habitatA.df$fitness))] # Location of optimum on x-axis
+optim_fitness_A <- habitatA.df$fitness[which(habitatA.df$fitness == max(habitatA.df$fitness))] # Fitness at optimum
+optim_CE_A <- habitatA.df$mort_curve[which(habitatA.df$fitness == max(habitatA.df$fitness))] # CE strength at optimum
+optim_NCE_A <- 1 - optim_CE_A - optim_fitness_A #NCE strength at optimum
+
+# Plot them
+ggplot( data = habitatA.df, aes( x = trait ) ) +
+  geom_smooth( aes( y = growth_curve, colour = "Growth"  ), se = FALSE) +
+  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
+  geom_label(label = c("Habitat A"), x = 0.9, y = 0.95) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  geom_vline( xintercept = optim_A,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  annotate( "text", x = optim_A + 0.15, y = 0.55, label = paste0("s = ", (1 - optim_A) * 1000), size = 7/.pt  ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom" )
 ```
 
-The growth curve can be calculated by simply adding the amount of resources the prey can gather during its time in the refuge vs. outside of it.
+Thus, in Habitat A, fitness (1 - NCE - CE) is optimized at a displacement rate of ~460 ($s = 0.46$).
+
+In Habitat B, the refuge, predators are very rare ($k_B = 0.001$) but resources are far less plentiful ($R_B = 0.05$). This results in the following trait curves:
+
+```{r, echo = FALSE}
+# Repeat with new variable levels for Habitat B
+habitatB.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
+colnames(habitatB.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+habitatB.df$trait <- trait.vec
+habitatB.df$speed <- speed.vec
+
+
+h_val <- 8 # prey handling time
+R_val_B <- 0.1 # resource density outside of refuge
+v_val <- 0.2 # predator velocity
+k_val_B <- 0.001 # predator density outside refuge
+cost_constant_val <- 9 # a constant Scott applied to the growth curve in the calcs to make the numbers cleaner
+pred_constant_val <- 0.98058 # a constant Scott applied in the calcs to the mortality curve to make the numbers cleaner
+
+# Derive the trait curves
+habitatB.df$growth_curve <- cost_constant_val * growth.curve( s = habitatB.df$speed, R = R_val_B, h = h_val ) # Growth curve
+habitatB.df$mort_curve <- pred_constant_val * pred.curve( k = k_val_B, v = v_val, s = habitatB.df$speed ) # Mortality curve
+habitatB.df$fitness <- habitatB.df$growth_curve - habitatB.df$mort_curve # Fitness
+habitatB.df$NCE_CE <- (1 - habitatB.df$growth_curve)/habitatB.df$mort_curve # NCE/CE
+
+optim_B <- habitatB.df$trait[which(habitatB.df$fitness == max(habitatB.df$fitness))] # Location of optimum on x-axis
+optim_fitness_B <- habitatA.df$fitness[which(habitatB.df$fitness == max(habitatB.df$fitness))] # Fitness at optimum
+optim_CE_B <- habitatB.df$mort_curve[which(habitatB.df$fitness == max(habitatB.df$fitness))] # CE strength at optimum
+optim_NCE_B <- 1 - optim_CE_B - optim_fitness_B #NCE strength at optimum
+
+# Plot them
+ggplot( data = habitatB.df, aes( x = trait ) ) +
+  geom_smooth( aes( y = growth_curve, colour = "Growth"  ), se = FALSE) +
+  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
+  geom_label(label = c("Habitat B"), x = 0.9, y = 0.95) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  geom_vline( xintercept = optim_B,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  annotate( "text", x = optim_B + 0.15, y = 0.55, label = paste0("s = ", (1 - optim_B) * 1000), size = 7/.pt  ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom" )
+```
+
+In this set of curves, the optimal prey body velocity is at its maximum, in part because the mortality curve is very low and shallow. Having played around with the parameter space some, this seems to generally be the case for sufficiently low values of $k_B$, as shown below.
+
+```{r, echo = FALSE}
+k_sensitivity.df <- as.data.frame( mat.or.vec( length( speed.vec ), 7) )
+colnames(k_sensitivity.df) <- c("trait", "speed", "growth_curve", "k_0.01", "k_0.1", "k_0.2", "k_0.3")
+k_sensitivity.df$trait <- trait.vec
+k_sensitivity.df$speed <- speed.vec
+
+# Derive the trait curves
+k_sensitivity.df$growth_curve <- cost_constant_val * growth.curve( s = k_sensitivity.df$speed, R = R_val_B, h = h_val ) # Growth curve
+k_sensitivity.df$k_0.01 <- pred_constant_val * pred.curve( k = 0.01, v = v_val, s = k_sensitivity.df$speed ) # Mortality curve
+k_sensitivity.df$k_0.1 <- pred_constant_val * pred.curve( k = 0.1, v = v_val, s = k_sensitivity.df$speed ) # Mortality curve
+k_sensitivity.df$k_0.2 <- pred_constant_val * pred.curve( k = 0.2, v = v_val, s = k_sensitivity.df$speed ) # Mortality curve
+k_sensitivity.df$k_0.3 <- pred_constant_val * pred.curve( k = 0.3, v = v_val, s = k_sensitivity.df$speed ) # Mortality curve
+
+
+# Plot them
+ggplot( data = k_sensitivity.df, aes( x = trait ) ) +
+  geom_smooth( aes( y = growth_curve, colour = "Growth"  ), se = FALSE) +
+  geom_smooth( aes( y = k_0.01, colour = "k = 0.01" ), se = FALSE, linetype = "dashed" ) +
+  geom_smooth( aes( y = k_0.1, colour = "k = 0.1" ), se = FALSE, linetype = "dashed" ) +
+  geom_smooth( aes( y = k_0.2, colour = "k = 0.2" ), se = FALSE, linetype = "dashed" ) +
+  geom_smooth( aes( y = k_0.3, colour = "k = 0.3" ), se = FALSE, linetype = "dashed" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_discrete(name = "Curve") +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom" )
+
+# Even for k = 0.3, the optimum is very close to maximum speed
+optim_k_0.3 <- k_sensitivity.df$trait[which((k_sensitivity.df$growth_curve - k_sensitivity.df$k_0.3) == max(k_sensitivity.df$growth_curve - k_sensitivity.df$k_0.3))]
+```
+
+Even for $k_B = 0.3$, which is somewhat close to Habitat A's $k_A = 0.45$, the prey's optimal body velocity is still close to the maximum ($s = 0.96$).
+
+\pagebreak
+
+# Optimizing Time Spent in Refuge
+
+Now that we've predicted the optimal body velocity for prey in Habitats A and B, given their resource and predator densities differ, we can think about how prey might optimize the amount of time they spend in either habitat across a given period of time. To do so, we will set prey body velocity constant at the levels derived above ($s_A = 0.46$, $s_B = 1$) and consider what degree of refuge use (on the x-axis) will maximize fitness.
+
+The growth curve in this case can be calculated by simply adding the amount of resources the prey can gather during its time in the refuge vs. outside of it.
 
 ```{r}
 ## Derive the trait curves
+refuge.df <- as.data.frame( mat.or.vec( 25, 5 ) ) 
+colnames(refuge.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+refuge.df$proptime <- seq(0, 1, by = 1/24) 
+
+s_val_A <- 0.46
+s_val_B <- 1
+
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+growth_A_val <- growth.curve( s = s_val_A, R = R_val_A, h = 8 ) * cost_constant_val # Growth outside refuge during an hour
+growth_B_val <- growth.curve( s = s_val_B, R = R_val_B, h = 8 ) * cost_constant_val # Growth inside refuge during an hour
+
 # Growth curve
 # Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
-refuge.df$growth_curve <- 
-  (1 - refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_val, R = R_val, h = h_val ) ) +
-  (refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_refuge_val, R = R_refuge_val, h = h_val ) )
+refuge.df$growth_curve <- (1 - refuge.df$proptime) * growth_A_val + (refuge.df$proptime) * growth_B_val
 ```
 
 For the mortality curve, because risk is multiplicative instead of additive, we will calculate it using a weighted geometric mean:
@@ -131,10 +244,11 @@ Note that because this formula requires taking the natural log of the risk funct
 
 ```{r}
 # Mortality curve
+mort_val_A <- pred_constant_val * pred.curve( k = k_val_A, v = v_val, s = s_val_A ) # Mortality outside the refuge during an hour
+mort_val_B <- pred_constant_val * pred.curve( k = k_val_B, v = v_val, s = s_val_B ) # Mortality inside the refuge during an hour
+
 # Weighted mean of risk during time spent outside refuge + risk during time spent inside refuge
-refuge.df$mort_curve <- exp( 
-  ( ( 1 - refuge.df$proptime ) * log( pred_constant_val * pred.curve( k = k_val, v = v_val, s = s_val ) ) ) +
-    ( ( refuge.df$proptime ) * log( pred_constant_val * pred.curve( k = k_refuge_val, v = v_val, s = s_refuge_val ) ) ) )
+refuge.df$mort_curve <- exp( ( 1 - refuge.df$proptime ) * log( mort_val_A ) + ( refuge.df$proptime ) * log( mort_val_B ) )
 
 # Calculate fitness and relative strength of NCEs and CEs
 refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$mort_curve
@@ -145,654 +259,195 @@ refuge_optim <- round(refuge.df$proptime[which(refuge.df$fitness == max(refuge.d
 refuge_optim_fitness <- round(refuge.df$fitness[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The fitness value at the optimum
 refuge_optim_CE <- round(refuge.df$mort_curve[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The strength of the CE at the optimum
 refuge_optim_NCE <- round(1 - refuge_optim_CE - refuge_optim_fitness, digits = 2) # The strength of the NCE at the optimum
-
 ```
 
 This results in the following trait curves and optimal strategy.
 
 ```{r, echo = FALSE}
-# Generate a plot of the trait curves
 ggplot( data = refuge.df, aes( x = proptime ) ) +
   geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
   geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  theme_classic( base_size = 10, base_line_size = 1 ) +   
+  geom_vline( xintercept = refuge_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  annotate( "text", x = refuge_optim + 0.15, y = 0.55, label = paste0("p = ", refuge_optim ), size = 7/.pt  ) +
+  annotate( "text", x = 0.5, y = 0.95, label = "NCE = 0.21, CE = 0.07, Fitness = 0.72", size = 7/.pt  ) +
   ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
-  geom_vline( xintercept = refuge_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = 0.25, y = 0.9, label = paste0("NCE = ", refuge_optim_NCE), size = 8/.pt  ) +
-  annotate( "text", x = 0.25, y = 0.5, label = paste0("Fitness = ", refuge_optim_fitness), size = 8/.pt  ) +
-  annotate( "text", x = 0.25, y = 0.2, label = paste0("CE = ", refuge_optim_CE), size = 8/.pt  ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_colour_manual(name = "Curve", values = c("blue", "red")) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         legend.position = "bottom" )
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
 ```
 
-In the above figure, the growth and mortality rates are shown as a function of the proportion of time that prey spend in the refuge. The blue line is the growth-trait curve, while the red dashed line is the mortality-trait curve. The optimal level of trait expression is noted with the vertical green dashed line, which also provides estimates for NCE and CE strength as well as overall fitness ($1 - NCE - CE$).
+In the above figure, the growth and mortality rates are shown as a function of the proportion of time that prey spend in the refuge. The blue line is the growth-trait curve, while the red dashed line is the mortality-trait curve. The optimal level of trait expression is noted with the vertical green dashed line.
 
 The growth-trait curve is linear, because as time spent in the refuge increases, prey have proportionally less time to forage. On the other hand, the mortality-trait curve is saturating, because there are diminishing returns on how much prey can reduce their exposure to predators.
-
-Because we had to use $k_{refuge} = 0.001$ to avoid an error when taking its logarithm for the weighted mean, the optimal proportion of time spent in the refuge is close to, but not exactly, 0. Presumably it would approach zero as $k_{refuge}$ approaches zero.
-
-\pagebreak
-## Scenario 2: Refuge with No Predators, But Increasing Food
-
-We will repeat the above calculations with different values for the resource density in the refuge ($R_{refuge}$ = 0.25, 0.50, 0.99), while keeping predator density in the refuge near zero ($k_{refuge} = 0.001$). For reference, in the baseline scenario above, resource density outside of the refuge ($R$) is 1.
-
-```{r, echo = FALSE, fig.height = 7}
-## Scenario 2a
-R_refuge_val <- 0.25 # resource density inside refuge
-
-# Growth curve
-# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
-refuge.df$growth_curve <- 
-  (1 - refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_val, R = R_val, h = h_val ) ) +
-  (refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_refuge_val, R = R_refuge_val, h = h_val ) )
-
-# Mortality curve remains the same
-
-# Calculate fitness and relative strength of NCEs and CEs
-refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$mort_curve
-refuge.df$NCE_CE <- refuge.df$growth_curve / refuge.df$mort_curve
-
-# Some other important metrics
-refuge_optim <- round(refuge.df$proptime[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The level of refuge use (along x-axis) that fitness is optimized at
-refuge_optim_fitness <- round(refuge.df$fitness[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The fitness value at the optimum
-refuge_optim_CE <- round(refuge.df$mort_curve[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The strength of the CE at the optimum
-refuge_optim_NCE <- round(1 - refuge_optim_CE - refuge_optim_fitness, digits = 2) # The strength of the NCE at the optimum
-
-# Generate a plot of the trait curves
-scen2a.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
-  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
-  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Growth and Mortality") +
-  xlab("Proportion of Time Spent in Refuge") +
-  geom_vline( xintercept = refuge_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = 0.75, y = 0.95, label = paste0("NCE = ", refuge_optim_NCE), size = 8/.pt  ) +
-  annotate( "text", x = 0.75, y = 0.5, label = paste0("Fitness = ", refuge_optim_fitness), size = 8/.pt  ) +
-  annotate( "text", x = 0.75, y = 0.1, label = paste0("CE = ", refuge_optim_CE), size = 8/.pt  ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         axis.title.x = element_blank(),
-         axis.text.x = element_blank(),
-         legend.position = "none" )
-
-## Scenario 2b
-R_refuge_val <- 0.50 # resource density inside refuge
-
-# Growth curve
-# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
-refuge.df$growth_curve <- 
-  (1 - refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_val, R = R_val, h = h_val ) ) +
-  (refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_refuge_val, R = R_refuge_val, h = h_val ) )
-
-# Mortality curve remains the same
-
-# Calculate fitness and relative strength of NCEs and CEs
-refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$mort_curve
-refuge.df$NCE_CE <- refuge.df$growth_curve / refuge.df$mort_curve
-
-# Some other important metrics
-refuge_optim <- round(refuge.df$proptime[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The level of refuge use (along x-axis) that fitness is optimized at
-refuge_optim_fitness <- round(refuge.df$fitness[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The fitness value at the optimum
-refuge_optim_CE <- round(refuge.df$mort_curve[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The strength of the CE at the optimum
-refuge_optim_NCE <- round(1 - refuge_optim_CE - refuge_optim_fitness, digits = 2) # The strength of the NCE at the optimum
-
-# Generate a plot of the trait curves
-scen2b.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
-  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
-  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Growth and Mortality") +
-  xlab("Proportion of Time Spent in Refuge") +
-  geom_vline( xintercept = refuge_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = 0.75, y = 0.95, label = paste0("NCE = ", refuge_optim_NCE), size = 8/.pt  ) +
-  annotate( "text", x = 0.75, y = 0.5, label = paste0("Fitness = ", refuge_optim_fitness), size = 8/.pt  ) +
-  annotate( "text", x = 0.75, y = 0.1, label = paste0("CE = ", refuge_optim_CE), size = 8/.pt  ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         axis.title.x = element_blank(),
-         axis.text.x = element_blank(),
-         legend.position = "none" )
-
-## Scenario 2c
-R_refuge_val <- 0.99 # resource density inside refuge
-
-# Growth curve
-# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
-refuge.df$growth_curve <- 
-  (1 - refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_val, R = R_val, h = h_val ) ) +
-  (refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_refuge_val, R = R_refuge_val, h = h_val ) )
-
-# Mortality curve remains the same
-
-# Calculate fitness and relative strength of NCEs and CEs
-refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$mort_curve
-refuge.df$NCE_CE <- refuge.df$growth_curve / refuge.df$mort_curve
-
-# Some other important metrics
-refuge_optim <- round(refuge.df$proptime[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The level of refuge use (along x-axis) that fitness is optimized at
-refuge_optim_fitness <- round(refuge.df$fitness[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The fitness value at the optimum
-refuge_optim_CE <- round(refuge.df$mort_curve[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The strength of the CE at the optimum
-refuge_optim_NCE <- round(1 - refuge_optim_CE - refuge_optim_fitness, digits = 2) # The strength of the NCE at the optimum
-
-# Generate a plot of the trait curves
-scen2c.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
-  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
-  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Growth and Mortality") +
-  xlab("Proportion of Time Spent in Refuge") +
-  geom_vline( xintercept = refuge_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = 0.75, y = 0.95, label = paste0("NCE = ", refuge_optim_NCE), size = 8/.pt  ) +
-  annotate( "text", x = 0.75, y = 0.5, label = paste0("Fitness = ", refuge_optim_fitness), size = 8/.pt  ) +
-  annotate( "text", x = 0.75, y = 0.1, label = paste0("CE = ", refuge_optim_CE), size = 8/.pt  ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1.0), breaks = c(0, 0.5, 1) ) +
-  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         legend.position = "bottom" )
-
-
-get_legend_35 <- function(plot) {
-  # return all legend candidates
-  legends <- get_plot_component(plot, "guide-box", return_all = TRUE)
-  # find non-zero legends
-  nonzero <- vapply(legends, \(x) !inherits(x, "zeroGrob"), TRUE)
-  idx <- which(nonzero)
-  # return first non-zero legend if exists, and otherwise first element (which will be a zeroGrob) 
-  if (length(idx) > 0) {
-    return(legends[[idx[1]]])
-  } else {
-    return(legends[[1]])
-  }
-}
-
-fig2.legend <- get_legend_35(scen2c.plot)
-scen2c.plot <- scen2c.plot + theme(legend.position = "none")
-
-fig2.plot <- plot_grid( scen2a.plot, scen2b.plot, scen2c.plot, ncol = 1, labels = c("a) R = 0.25", "b) R = 0.50", "c) R = 0.99"), label_size = 10, label_y = 1, label_x = 0.2, align = c("hv") )
-plot_grid( fig2.plot, fig2.legend, rel_heights = c(1, 0.1), ncol = 1)
-```
-
-In the above figures, increasing $R_{refuge}$ flattens the growth curve as conditions inside the refuge become more similar to conditions outside of it. The optimal solution thus becomes spending progressively more time in the refuge. In panels b) and c), the green line for the optimum isn't visible because it is at $x = 1$, i.e., all time spent in refuge.
 \pagebreak
 
-## Scenario 3: An Increasingly "Unsafe" Refuge with Constant Food
+# Incorporating Predator Foraging Mode
 
-Here, we will hold food availability in the refuge at a constant but lower level than outside the refuge ($R_{refuge} = 0.5$) , while manipulating predator density within the refuge ($k_{refuge}$ = 0.15, 0.30, 0.60). For reference, predator density outside of the refuge is set (as in all scenarios above) at $k = 0.45$. 
+Looping back around to Os's work on the topic, a large part of his predictions had to do with what decisions a prey should make regarding foraging effort and refuge use given different predator foraging modes. In the above examples, I used $v = 0.2$, which is the level used in the grant proposal to represent a "sit-and-wait" style predator. Let's revisit his tables.
 
-We will also modify our assumptions about the prey's velocity here: because there are now predators in the refuge, prey should reduce their activity accordingly. To determine how much prey should reduce their velocity, we will consider what the optimum would be if the refuge were the only habitat the prey could use. I.e., we will ask: what would the optimal body velocity be in the refuge habitat if prey had no alternative?
+![Fig. 2 from Schmitz et al. 2004](Schmitz_Fig2.png)
 
-As a reminder, this is the optimum outside of the refuge:
+Os predicts that when the prey's habitat domain is larger than the predators (i.e., a refuge exists, the upper right quadrant), the prey should predominantly shift their habitat use to avoid predators regardless of their foraging mode. Here, we show that they should actually do a little bit of both depending on the relative risk and resource density present in either habitat. 
 
-```{r}
-trait.vec <- seq(0, 1, by = 0.01)
-speed.vec <- 1 - trait.vec
+But what if prey are faced with a more active predator? Does the optimal strategy change, or does our model still agree with Os's? Let's repeat the above steps with a predator with a much higher foraging rate ($v = 1$), as in the grant proposal, and see if it changes our predictions.
 
-# k = 0.45
-baseline.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
-colnames(baseline.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
-baseline.df$trait <- trait.vec
-baseline.df$speed <- speed.vec
-h_val <- 8
-R_val <- 1
-v_val <- 0.2
-k_val <- 0.45
-
-baseline.df$growth_curve <- cost_constant_val * growth.curve( s = baseline.df$speed, R = R_val, h = h_val ) # Growth curve
-baseline.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = baseline.df$speed ) # Mortality curve
-baseline.df$fitness <- baseline.df$growth_curve - baseline.df$mort_curve # fitness
-baseline.df$NCE_CE <- (1 - baseline.df$growth_curve)/baseline.df$mort_curve # NCE/CE
-
-baseline_optim <- baseline.df$trait[which(baseline.df$fitness == max(baseline.df$fitness))]
-baseline_optim_fitness <- baseline.df$fitness[which(baseline.df$fitness == max(baseline.df$fitness))]
-baseline_optim_CE <- baseline.df$mort_curve[which(baseline.df$fitness == max(baseline.df$fitness))]
-baseline_optim_NCE <- 1 - baseline_optim_CE - baseline_optim_fitness
-
-ggplot( data = baseline.df, aes( x = trait ) ) +
-  geom_smooth( aes( y = growth_curve ), se = FALSE, color = "blue" ) +
-  geom_smooth( aes( y = mort_curve ), se = FALSE, color = "red", linetype = "dashed" ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Growth and Mortality") +
-  xlab("Displacement Rate") +
-  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = baseline_optim + 0.15, y = 0.55, label = paste0("s = ", (1 - baseline_optim) * 1000), size = 7/.pt  ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "none" )
-```
-
-The optimal body velocity is ~0.46 (i.e., displacement/1000).
-
-And here are the optimums within a refuge where $k_{refuge}$ is 0.15, 0.30, and 0.60 respectively. 
-
-```{r, echo = FALSE, fig.height = 7}
-trait.vec <- seq(0, 1, by = 0.01)
-speed.vec <- 1 - trait.vec
-
-# k = 0.15
-baseline.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
-colnames(baseline.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
-baseline.df$trait <- trait.vec
-baseline.df$speed <- speed.vec
-h_val <- 8
-R_val <- 1
-v_val <- 0.2
-k_val <- 0.15
-
-baseline.df$growth_curve <- cost_constant_val * growth.curve( s = baseline.df$speed, R = R_val, h = h_val ) # Growth curve
-baseline.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = baseline.df$speed ) # Mortality curve
-baseline.df$fitness <- baseline.df$growth_curve - baseline.df$mort_curve # fitness
-baseline.df$NCE_CE <- (1 - baseline.df$growth_curve)/baseline.df$mort_curve # NCE/CE
-
-baseline_optim <- baseline.df$trait[which(baseline.df$fitness == max(baseline.df$fitness))]
-baseline_optim_fitness <- baseline.df$fitness[which(baseline.df$fitness == max(baseline.df$fitness))]
-baseline_optim_CE <- baseline.df$mort_curve[which(baseline.df$fitness == max(baseline.df$fitness))]
-baseline_optim_NCE <- 1 - baseline_optim_CE - baseline_optim_fitness
-
-scen3a_s.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
-  geom_smooth( aes( y = growth_curve ), se = FALSE, color = "blue" ) +
-  geom_smooth( aes( y = mort_curve ), se = FALSE, color = "red", linetype = "dashed" ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Growth and Mortality") +
-  xlab("Displacement Rate") +
-  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = baseline_optim + 0.15, y = 0.55, label = paste0("s = ", (1 - baseline_optim) * 1000), size = 7/.pt  ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "none" )
-
-
-# k = 0.30
-baseline.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
-colnames(baseline.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
-baseline.df$trait <- trait.vec
-baseline.df$speed <- speed.vec
-h_val <- 8
-R_val <- 1
-v_val <- 0.2
-k_val <- 0.30
-
-baseline.df$growth_curve <- cost_constant_val * growth.curve( s = baseline.df$speed, R = R_val, h = h_val ) # Growth curve
-baseline.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = baseline.df$speed ) # Mortality curve
-baseline.df$fitness <- baseline.df$growth_curve - baseline.df$mort_curve # fitness
-baseline.df$NCE_CE <- (1 - baseline.df$growth_curve)/baseline.df$mort_curve # NCE/CE
-
-baseline_optim <- baseline.df$trait[which(baseline.df$fitness == max(baseline.df$fitness))]
-baseline_optim_fitness <- baseline.df$fitness[which(baseline.df$fitness == max(baseline.df$fitness))]
-baseline_optim_CE <- baseline.df$mort_curve[which(baseline.df$fitness == max(baseline.df$fitness))]
-baseline_optim_NCE <- 1 - baseline_optim_CE - baseline_optim_fitness
-
-scen3b_s.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
-  geom_smooth( aes( y = growth_curve ), se = FALSE, color = "blue" ) +
-  geom_smooth( aes( y = mort_curve ), se = FALSE, color = "red", linetype = "dashed" ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Growth and Mortality") +
-  xlab("Displacement Rate") +
-  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = baseline_optim + 0.15, y = 0.55, label = paste0("s = ", (1 - baseline_optim) * 1000), size = 7/.pt  ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         axis.title.y = element_blank(), legend.position = "none" )
-
-# k = 0.60
-baseline.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
-colnames(baseline.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
-baseline.df$trait <- trait.vec
-baseline.df$speed <- speed.vec
-h_val <- 8
-R_val <- 1
-v_val <- 0.2
-k_val <- 0.6
-
-baseline.df$growth_curve <- cost_constant_val * growth.curve( s = baseline.df$speed, R = R_val, h = h_val ) # Growth curve
-baseline.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = baseline.df$speed ) # Mortality curve
-baseline.df$fitness <- baseline.df$growth_curve - baseline.df$mort_curve # fitness
-baseline.df$NCE_CE <- (1 - baseline.df$growth_curve)/baseline.df$mort_curve # NCE/CE
-
-baseline_optim <- baseline.df$trait[which(baseline.df$fitness == max(baseline.df$fitness))]
-baseline_optim_fitness <- baseline.df$fitness[which(baseline.df$fitness == max(baseline.df$fitness))]
-baseline_optim_CE <- baseline.df$mort_curve[which(baseline.df$fitness == max(baseline.df$fitness))]
-baseline_optim_NCE <- 1 - baseline_optim_CE - baseline_optim_fitness
-
-scen3c_s.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
-  geom_smooth( aes( y = growth_curve ), color = "blue", se = FALSE ) +
-  geom_smooth( aes( y = mort_curve ), color = "red", se = FALSE, linetype = "dashed" ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Growth and Mortality") +
-  xlab("Displacement Rate") +
-  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = baseline_optim + 0.15, y = 0.55, label = paste0("s = ", (1 - baseline_optim) * 1000), size = 7/.pt  ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         axis.title.y = element_blank(), legend.position = "bottom" )
-
-
-scen3_s.legend <- get_legend_35(scen3c_s.plot)
-scen3c_s.plot <- scen3c_s.plot + theme(legend.position = "none")
-
-scen3_s.plot <- plot_grid( scen3a_s.plot, scen3b_s.plot, scen3c_s.plot, ncol = 3, labels = "auto", label_y = 0.75, align = c("hv") )
-plot_grid( scen3_s.plot, scen3_s.legend, rel_heights = c(1, 0.1), ncol = 1)
-```
-
-Thus, the prey body velocities (i.e., $s/1000$) in the following scenarios will be as follows: 0.87, 0.59, and 0.39.
-
-Here are the resulting curves:
-
-```{r, echo = FALSE, fig.height = 7}
-## Scenario 3a
-s_refuge_val <- 0.87
-R_refuge_val <- 0.5 # resource density inside refuge
-k_refuge_val <- 0.15 # predator density inside refuge
-
-# Growth curve
-# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
-refuge.df$growth_curve <- 
-  (1 - refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_val, R = R_val, h = h_val ) ) +
-  (refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_refuge_val, R = R_refuge_val, h = h_val ) )
-
-# Mortality curve
-# Weighted mean of risk during time spent outside refuge + risk during time spent inside refuge
-refuge.df$mort_curve <- exp( 
-  ( ( 1 - refuge.df$proptime ) * log( pred_constant_val * pred.curve( k = k_val, v = v_val, s = s_val ) ) ) +
-    ( ( refuge.df$proptime ) * log( pred_constant_val * pred.curve( k = k_refuge_val, v = v_val, s = s_refuge_val ) ) ) )
-
-# Calculate fitness and relative strength of NCEs and CEs
-refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$mort_curve
-refuge.df$NCE_CE <- refuge.df$growth_curve / refuge.df$mort_curve
-
-# Some other important metrics
-refuge_optim <- round(refuge.df$proptime[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The level of refuge use (along x-axis) that fitness is optimized at
-refuge_optim_fitness <- round(refuge.df$fitness[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The fitness value at the optimum
-refuge_optim_CE <- round(refuge.df$mort_curve[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The strength of the CE at the optimum
-refuge_optim_NCE <- round(1 - refuge_optim_CE - refuge_optim_fitness, digits = 2) # The strength of the NCE at the optimum
-
-# Generate a plot of the trait curves
-scen3a.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
-  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
-  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Growth and Mortality") +
-  xlab("Proportion of Time Spent in Refuge") +
-  geom_vline( xintercept = refuge_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = 0.3, y = 0.95, label = paste0("NCE = ", refuge_optim_NCE), size = 8/.pt  ) +
-  annotate( "text", x = 0.3, y = 0.5, label = paste0("Fitness = ", refuge_optim_fitness), size = 8/.pt  ) +
-  annotate( "text", x = 0.3, y = 0.1, label = paste0("CE = ", refuge_optim_CE), size = 8/.pt  ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         axis.title.x = element_blank(),
-         axis.text.x = element_blank(),
-         legend.position = "none" )
-
-
-## Scenario 3b
-s_refuge_val <- 0.59
-R_refuge_val <- 0.5 # resource density inside refuge
-k_refuge_val <- 0.30 # predator density inside refuge
-
-# Growth curve
-# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
-refuge.df$growth_curve <- 
-  (1 - refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_val, R = R_val, h = h_val ) ) +
-  (refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_refuge_val, R = R_refuge_val, h = h_val ) )
-
-# Mortality curve
-# Weighted mean of risk during time spent outside refuge + risk during time spent inside refuge
-refuge.df$mort_curve <- exp( 
-  ( ( 1 - refuge.df$proptime ) * log( pred_constant_val * pred.curve( k = k_val, v = v_val, s = s_val ) ) ) +
-    ( ( refuge.df$proptime ) * log( pred_constant_val * pred.curve( k = k_refuge_val, v = v_val, s = s_val ) ) ) )
-
-# Calculate fitness and relative strength of NCEs and CEs
-refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$mort_curve
-refuge.df$NCE_CE <- refuge.df$growth_curve / refuge.df$mort_curve
-
-# Some other important metrics
-refuge_optim <- round(refuge.df$proptime[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The level of refuge use (along x-axis) that fitness is optimized at
-refuge_optim_fitness <- round(refuge.df$fitness[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The fitness value at the optimum
-refuge_optim_CE <- round(refuge.df$mort_curve[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The strength of the CE at the optimum
-refuge_optim_NCE <- round(1 - refuge_optim_CE - refuge_optim_fitness, digits = 2) # The strength of the NCE at the optimum
-
-# Generate a plot of the trait curves
-scen3b.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
-  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
-  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Growth and Mortality") +
-  xlab("Proportion of Time Spent in Refuge") +
-  geom_vline( xintercept = refuge_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = 0.3, y = 0.95, label = paste0("NCE = ", refuge_optim_NCE), size = 8/.pt  ) +
-  annotate( "text", x = 0.3, y = 0.5, label = paste0("Fitness = ", refuge_optim_fitness), size = 8/.pt  ) +
-  annotate( "text", x = 0.3, y = 0.1, label = paste0("CE = ", refuge_optim_CE), size = 8/.pt  ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         axis.title.x = element_blank(),
-         axis.text.x = element_blank(),
-         legend.position = "none" )
-
-
-##Scenario 3c
-s_refuge_val <- 0.39
-R_refuge_val <- 0.5 # resource density inside refuge
-k_refuge_val <- 0.60 # predator density inside refuge
-
-# Growth curve
-# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
-refuge.df$growth_curve <- 
-  (1 - refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_val, R = R_val, h = h_val ) ) +
-  (refuge.df$proptime) * ( cost_constant_val * growth.curve( s = s_refuge_val, R = R_refuge_val, h = h_val ) )
-
-# Mortality curve
-# Weighted mean of risk during time spent outside refuge + risk during time spent inside refuge
-refuge.df$mort_curve <- exp( 
-  ( ( 1 - refuge.df$proptime ) * log( pred_constant_val * pred.curve( k = k_val, v = v_val, s = s_val ) ) ) +
-    ( ( refuge.df$proptime ) * log( pred_constant_val * pred.curve( k = k_refuge_val, v = v_val, s = s_val ) ) ) )
-
-# Calculate fitness and relative strength of NCEs and CEs
-refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$mort_curve
-refuge.df$NCE_CE <- refuge.df$growth_curve / refuge.df$mort_curve
-
-# Some other important metrics
-refuge_optim <- round(refuge.df$proptime[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The level of refuge use (along x-axis) that fitness is optimized at
-refuge_optim_fitness <- round(refuge.df$fitness[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The fitness value at the optimum
-refuge_optim_CE <- round(refuge.df$mort_curve[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The strength of the CE at the optimum
-refuge_optim_NCE <- round(1 - refuge_optim_CE - refuge_optim_fitness, digits = 2) # The strength of the NCE at the optimum
-
-# Generate a plot of the trait curves
-scen3c.plot<- ggplot( data = refuge.df, aes( x = proptime ) ) +
-  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
-  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Growth and Mortality") +
-  xlab("Proportion of Time Spent in Refuge") +
-  geom_vline( xintercept = refuge_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = 0.3, y = 0.95, label = paste0("NCE = ", refuge_optim_NCE), size = 8/.pt  ) +
-  annotate( "text", x = 0.3, y = 0.5, label = paste0("Fitness = ", refuge_optim_fitness), size = 8/.pt  ) +
-  annotate( "text", x = 0.3, y = 0.1, label = paste0("CE = ", refuge_optim_CE), size = 8/.pt  ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         legend.position = "bottom" )
-
-fig3.legend <- get_legend_35(scen3c.plot)
-scen3c.plot <- scen3c.plot + theme(legend.position = "none")
-
-fig3.plot <- plot_grid( scen3a.plot, scen3b.plot, scen3c.plot, ncol = 1, labels = c("a) k = 0.15", "b) k = 0.30", "c) k = 0.60"), label_size = 10, label_y = 1, label_x = 0.2, align = c("hv") )
-plot_grid( fig3.plot, fig3.legend, rel_heights = c(1, 0.1), ncol = 1)
-```
-
-The mortality curve first flattens and eventually inverts itself, as the lower resource density in the refuge ($R_{refuge} = 0.5$) eventually makes using the refuge no longer worthwhile for the prey. In all three panels, the horizontal lines signifying the optimal trait value are not visible, because they are at $x = 0$, i.e., no time spent in the refuge.
-
-An important take-away here is that unless the growth-trait curve has a slope of 0 or greater, the optimal solution will be to spend no time in the refuge. Thus, the time-weighted resource gain in the refuge (due to the prey's increased body velocity) must be equal to or greater than it is outside of the refuge.
-
-$$ t_{outside}(\frac{sR}{1 + shR}) < t_{inside}(\frac{s_{refuge}R_{refuge}}{1 + s_{refuge}hR_{refuge}})$$
-For example, suppose that $s = 0.46$ and $R = 1$, as above, and $R_{refuge}$ = 0.75.
+Outside the refuge (Habitat A), the prey's optimal body velocity changes as follows:
 
 ```{r, echo = FALSE}
-s_refuge_vec <- seq(0, 1, by = 0.1)
-proptime_vec <- seq(0, 1, by = 1/24)
-R_refuge_val <- 0.75 # resource density inside refuge
-k_refuge_val <- 0.30 # predator density inside refuge
-s_val <- 0.46
+# First, set up dataframe and important variables
+predmodeA.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
+colnames(predmodeA.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+predmodeA.df$trait <- trait.vec
+predmodeA.df$speed <- speed.vec
 
-refuge.df <- as.data.frame(mat.or.vec(length(s_refuge_vec) * length(proptime_vec), 3))
-colnames(refuge.df) <- c("s_refuge", "proptime", "growth_curve")
+v_val <- 1 # the only difference is predator velocity
 
-row <- 0
-# Growth curve
-for (i in 1:length(s_refuge_vec)){
-  for (j in 1:length(proptime_vec)){
-    row <- row + 1
-    refuge.df$s_refuge[row] <- s_refuge_vec[i]
-    refuge.df$proptime[row] <- proptime_vec[j]
-    refuge.df$growth_curve[row] <- 
-  (1 - refuge.df$proptime[row]) * ( cost_constant_val * growth.curve( s = s_val, R = R_val, h = h_val ) ) +
-  (refuge.df$proptime[row]) * ( cost_constant_val * growth.curve( s = s_refuge_vec[i], R = R_refuge_val, h = h_val ) )
-  }
-}
+# Derive the trait curves
+predmodeA.df$growth_curve <- cost_constant_val * growth.curve( s = predmodeA.df$speed, R = R_val_A, h = h_val ) # Growth curve
+predmodeA.df$mort_curve <- pred_constant_val * pred.curve( k = k_val_A, v = v_val, s = predmodeA.df$speed ) # Mortality curve
+predmodeA.df$fitness <- predmodeA.df$growth_curve - predmodeA.df$mort_curve # Fitness
+predmodeA.df$NCE_CE <- (1 - predmodeA.df$growth_curve)/predmodeA.df$mort_curve # NCE/CE
 
+optim_A <- predmodeA.df$trait[which(predmodeA.df$fitness == max(predmodeA.df$fitness))] # Location of optimum on x-axis
+optim_fitness_A <- predmodeA.df$fitness[which(predmodeA.df$fitness == max(predmodeA.df$fitness))] # Fitness at optimum
+optim_CE_A <- predmodeA.df$mort_curve[which(predmodeA.df$fitness == max(predmodeA.df$fitness))] # CE strength at optimum
+optim_NCE_A <- 1 - optim_CE_A - optim_fitness_A #NCE strength at optimum
 
-refuge.df$s_refuge <- as.factor(refuge.df$s_refuge)
-
-# Generate a plot of the growth curves
-ggplot( data = refuge.df, aes( x = proptime, y = growth_curve, colour = s_refuge ) ) +
-  geom_smooth( se = FALSE ) +
+# Plot them
+ggplot( data = predmodeA.df, aes( x = trait ) ) +
+  geom_smooth( aes( y = growth_curve, colour = "Growth"  ), se = FALSE) +
+  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
+  geom_label(label = c("Habitat A"), x = 0.9, y = 0.95) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Growth") +
-  xlab("Proportion of Time Spent in Refuge") +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  geom_vline( xintercept = optim_A,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  annotate( "text", x = optim_A + 0.15, y = 0.55, label = paste0("s = ", (1 - optim_A) * 1000), size = 7/.pt  ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  geom_hline(yintercept = 0.88461538, colour = "red", linetype = "dashed", size = 1.5) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
-
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom" )
 ```
 
-There is a threshold value of prey body velocity in the refuge ($s_{refuge}$) that is necessary (weighted by time spent in the refuge) for refuge use to be a valid strategy. Similarly, this means that there is some threshold value of predator density ($k_{refuge}$) that will be necessary for that level of body velocity ($s_{refuge}$) to be optimal. There is likely some way to derive this value quantitatively, but we can eyeball it graphically by using the above parameters with varying levels of $k_{refuge}$.
+The optimum is higher, in line with what we expect from both Os's predictions and our own IREF predictions. Meanwhile, inside the refuge, the prey's optimal body velocity predator density is too low to shift the optimal prey velocity away from full speed.
 
-```{r}
-s_refuge_val <- 0.7 # minimum value that produces a positive slope above
-proptime_vec <- seq(0, 1, by = 1/24)
-R_refuge_val <- 0.75 # resource density inside refuge
-k_refuge_vec <- seq(0.01, 0.30, by = 0.01) # predator density inside refuge
-s_val <- 0.46
+```{r, echo = FALSE}
+# First, set up dataframe and important variables
+predmodeB.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
+colnames(predmodeB.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+predmodeB.df$trait <- trait.vec
+predmodeB.df$speed <- speed.vec
 
-refuge.df <- as.data.frame(mat.or.vec(length(k_refuge_vec), 2))
-colnames(refuge.df) <- c("k_refuge", "optim")
+# Derive the trait curves
+predmodeB.df$growth_curve <- cost_constant_val * growth.curve( s = predmodeB.df$speed, R = R_val_B, h = h_val ) # Growth curve
+predmodeB.df$mort_curve <- pred_constant_val * pred.curve( k = k_val_B, v = v_val, s = predmodeB.df$speed ) # Mortality curve
+predmodeB.df$fitness <- predmodeB.df$growth_curve - predmodeB.df$mort_curve # Fitness
+predmodeB.df$NCE_CE <- (1 - predmodeB.df$growth_curve)/predmodeB.df$mort_curve # NCE/CE
+
+optim_B <- predmodeB.df$trait[which(predmodeB.df$fitness == max(predmodeB.df$fitness))] # Location of optimum on x-axis
+optim_fitness_B <- predmodeB.df$fitness[which(predmodeB.df$fitness == max(predmodeB.df$fitness))] # Fitness at optimum
+optim_CE_B <- predmodeB.df$mort_curve[which(predmodeB.df$fitness == max(predmodeB.df$fitness))] # CE strength at optimum
+optim_NCE_B <- 1 - optim_CE_A - optim_fitness_A #NCE strength at optimum
+
+# Plot them
+ggplot( data = predmodeB.df, aes( x = trait ) ) +
+  geom_smooth( aes( y = growth_curve, colour = "Growth"  ), se = FALSE) +
+  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
+  geom_label(label = c("Habitat B"), x = 0.9, y = 0.95) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  geom_vline( xintercept = optim_B,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  annotate( "text", x = optim_B + 0.15, y = 0.55, label = paste0("s = ", (1 - optim_B) * 1000), size = 7/.pt  ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom" )
+```
+
+And the optimal proportion of time spent in the refuge, given these prey body velocity values, is...
+
+```{r, echo = FALSE}
+predmode.df <- as.data.frame( mat.or.vec( 25, 5 ) ) 
+colnames(predmode.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+predmode.df$proptime <- seq(0, 1, by = 1/24) 
+
+s_val_A <- 0.64
+s_val_B <- 1
+v_val <- 1
+
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+growth_A_val <- growth.curve( s = s_val_A, R = R_val_A, h = h_val ) * cost_constant_val # Growth outside refuge during an hour
+growth_B_val <- growth.curve( s = s_val_B, R = R_val_B, h = h_val ) * cost_constant_val # Growth inside refuge during an hour
 
 # Growth curve
-for (i in 1:length(k_refuge_vec)){
-growth_curve <- 
-  (1 - proptime_vec) * ( cost_constant_val * growth.curve( s = s_val, R = R_val, h = h_val ) ) +
-  (proptime_vec) * ( cost_constant_val * growth.curve( s = s_refuge_val, R = R_refuge_val, h = h_val ) )
-    
-mort_curve <- exp( 
-  ( ( 1 - proptime_vec ) * log( pred_constant_val * pred.curve( k = k_val, v = v_val, s = s_val ) ) ) +
-    ( ( proptime_vec ) * log( pred_constant_val * pred.curve( k = k_refuge_vec[i], v = v_val, s = s_refuge_val ) ) ) )
-
-# Calculate fitness and relative strength of NCEs and CEs
-fitness_curve <- 1 - ( 1 - growth_curve ) - mort_curve
-
-# Some other important metrics
-refuge.df$k_refuge[i] <- k_refuge_vec[i]
-refuge.df$optim[i] <- round(max(fitness_curve), digits = 2) # The level of refuge use (along x-axis) that fitness is optimized at
-}
-
-
-# Generate a plot of the growth curves
-ggplot( data = refuge.df, aes( x = k_refuge, y = optim ) ) +
-  geom_smooth( se = FALSE ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Optimal Refuge Velocity") +
-  xlab("Refuge Predator Density") +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
-```
-
-In the previous figure, prey body velocities within the refuge ($s_{refuge}$) only produced positive growth-trait curves when they were greater than $\approx 0.70$. Here, we can see that this body velocity would only be optimal when predator density inside the refuge is less than $\approx 0.3$.
-
-\pagebreak
-
-## Scenario 4: Changing Predator Velocity
-
-**What if we tried the sims above with a predator that was more active? Do our predictions about the optimal time spent in the refuge change?**
-
-Doing so changes the mortality-trait curve like so:
-
-```{r}
-s_val <- 0.46
-s_refuge_val <- 0.87
-k_val <- 0.45
-k_refuge_val <- 0.15 # predator density inside refuge
-v_vec = seq(0, 1, by = 0.2)
-proptime_vec <- seq(0, 1, by = 1/24)
-
-predmode.df <- as.data.frame(mat.or.vec(length(v_vec)*length(proptime_vec),3))
-colnames(predmode.df) <- c("v", "proptime", "mort_curve")
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+predmode.df$growth_curve <- (1 - predmode.df$proptime) * growth_A_val + (predmode.df$proptime) * growth_B_val
 
 # Mortality curve
+mort_val_A <- pred_constant_val * pred.curve( k = k_val_A, v = v_val, s = s_val_A ) # Mortality outside the refuge during an hour
+mort_val_B <- pred_constant_val * pred.curve( k = k_val_B, v = v_val, s = s_val_B ) # Mortality inside the refuge during an hour
+
 # Weighted mean of risk during time spent outside refuge + risk during time spent inside refuge
-row <- 0
-for (i in 1:length(proptime_vec)){
-  for (j in 1:length(v_vec)){
-    row <- row + 1
-    predmode.df$v[row] <- v_vec[j]
-    predmode.df$proptime[row] <- proptime_vec[i]
-    predmode.df$mort_curve[row] <- exp( 
-  ( ( 1 - proptime_vec[i] ) * log( pred_constant_val * pred.curve( k = k_val, v = v_vec[j], s = s_val ) ) ) +
-    ( ( proptime_vec[i] ) * log( pred_constant_val * pred.curve( k = k_refuge_val, v = v_vec[j], s = s_refuge_val ) ) ) )
-  }
-}
+predmode.df$mort_curve <- exp( ( 1 - predmode.df$proptime ) * log( mort_val_A ) + ( predmode.df$proptime ) * log( mort_val_B ) )
 
+# Calculate fitness and relative strength of NCEs and CEs
+predmode.df$fitness <- 1 - ( 1 - predmode.df$growth_curve ) - predmode.df$mort_curve
+predmode.df$NCE_CE <- predmode.df$growth_curve / predmode.df$mort_curve
 
+# Some other important metrics
+refuge_optim <- round(predmode.df$proptime[which(predmode.df$fitness == max(predmode.df$fitness))], digits = 2) # The level of refuge use (along x-axis) that fitness is optimized at
+refuge_optim_fitness <- round(predmode.df$fitness[which(predmode.df$fitness == max(predmode.df$fitness))], digits = 2) # The fitness value at the optimum
+refuge_optim_CE <- round(predmode.df$mort_curve[which(predmode.df$fitness == max(predmode.df$fitness))], digits = 2) # The strength of the CE at the optimum
+refuge_optim_NCE <- round(1 - refuge_optim_CE - refuge_optim_fitness, digits = 2) # The strength of the NCE at the optimum
 
-# Generate a plot of the trait curves
-predmode.df$v <- as.factor(predmode.df$v)
-ggplot( data = predmode.df, aes( x = proptime, y = mort_curve, colour = v ) ) +
-  geom_smooth( se = FALSE ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Mortality") +
+ggplot( data = predmode.df, aes( x = proptime ) ) +
+  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
+  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) +   
+  geom_vline( xintercept = refuge_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  annotate( "text", x = refuge_optim + 0.15, y = 0.55, label = paste0("p = ", refuge_optim ), size = 7/.pt  ) +
+  annotate( "text", x = 0.5, y = 0.95, label = "NCE = 0.21, CE = 0.07, Fitness = 0.72", size = 7/.pt  ) +
+  ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
 ```
 
-Predictions might change if the mortality curve is very shallow (low $v$, so a sit-and-wait predator) and the growth curve steep.
-\pagebreak
+The IREF predicts that the prey should spend more time in the refuge faced with the active predator vs. the sit-and-wait predator ($p_{opt} = 0.33$ and $p_{opt} = 0.21$, respectively). This seems a little counter-intuitive at first, and may need some picking apart to explain. I think it relates in part to the fact that in this parameter space, a predator with a higher foraging rate is inherently more lethal. Consider the following mortality curves:
 
-# Optimizing Velocity Given Refuge Use
+```{r, echo = FALSE}
+# First, set up dataframe and important variables
+predmode_sens.df <- as.data.frame( mat.or.vec( length( speed.vec ), 4) )
+colnames(predmode_sens.df) <- c("trait", "speed", "v_0.2", "v_1.0" )
+predmode_sens.df$trait <- trait.vec
+predmode_sens.df$speed <- speed.vec
 
-In the second set of scenarios, we will flip things around so that instead of optimizing time spent in the refuge, we are optimizing body velocity given refuge use. 
+v_val_A <- 0.2
+v_val_B <- 1 # the only difference is predator velocity
 
-## The Daphnia-Byth System
+# Derive the trait curves
+predmode_sens.df$v_0.2 <- pred_constant_val * pred.curve( k = k_val_A, v = v_val_A, s = predmode_sens.df$speed ) # Mortality curve A
+predmode_sens.df$v_1.0 <- pred_constant_val * pred.curve( k = k_val_A, v = v_val_B, s = predmode_sens.df$speed ) # Mortality curve B
 
-This is similar to the *Byth*-*Daphnia* study system, where there is a certain fixed amount of time (daylight hours) where the *Daphnia* will migrate to a refuge from predation (deep water). For this system, we might suppose that there is a 16-hr day and no food in the refuge at depth, but no predators either. We will assume that *Daphnia* have free movement during the day at deeper depths, so $s_{refuge} = 1$.
+# Plot them
+ggplot( data = predmode_sens.df, aes( x = trait ) ) +
+  geom_smooth( aes( y = v_0.2, colour = "0.2"  ), se = FALSE, linetype = "dashed" ) +
+  geom_smooth( aes( y = v_1.0, colour = "1" ), se = FALSE, linetype = "dashed" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Mortality Rate") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_discrete(name = "v") +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom" )
+```
 
-Without some other restrictions, the time spent and velocity in the refuge **don't really matter**, because there are no predators and no food there. 
+The mortality curve for predator with the higher body velocity is not only shallower, but it is shifted up along the y-axis, i.e., that predator is simply more lethal. So, due to this difference in lethality, the optimal solution is to spend more time "hiding out" in the refuge away from the predator with the higher search rate. 
 
-Determining their optimal velocity outside of the refuge (i.e., shallow depths at night, which are arguably still a refuge of sorts since predation will be negligible then too) will likely take a bio-energetic approach, where we set the amount of resources they need across the whole simulation and solve backwards for what their velocity outside of the refuge should be.
-
-That could be done by taking the equation for resource gain (i.e., the growth curve) and determining what the minimum needed value to reach that resource level is. For example, if we assume that they need to gather ~3200 of their resource and they have 8 hours to do it in, that means they need 400 resources per hour. If we assume resource density isn't limiting:
-
-$$ 3200 = 400s$$
-
-they need to spend each hour moving at $s \geq \frac{1}{4}$. We can probably approximate this by generating the growth curve and then truncating it such that values where $s < \frac{1}{4}$ aren't viable.
-
-Incorporating some level of energy budgeting (i.e., by truncating the curve outside of the refuge) might be necessary to make this flipped approach work.
-
-I.e., we may need to assume that the refuge is entirely predator free, but has some given resource level that is lower than the surrounding habitat. In that case, the lower the resource level (and the more time the prey need to spend in refuge), the more "truncated" the curve will become as they need to compensate for lost time spent foraging.
-
-Ultimately, I think the take-away is that it's going to depend in some part on the differences in predator and resource density between the two habitats.
-\pagebreak
+It may also line up with Os's predictions in his Fig. 3 above, where he suggests that a sit-and-pursue predator might have stronger DMIIs relative to TMIIs than an active predator (upper right quadrant). Note, however, that the calculated values for NCE and CE strength, as well as fitness, are basically the same between the two predator foraging modes.
