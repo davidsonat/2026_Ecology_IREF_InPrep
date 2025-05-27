@@ -52,7 +52,7 @@ This leads to a mortality-trait curve that is slightly concave up with respect t
 # v is predator velocity
 # s is prey velocity
 
-pred.curve <- function(N_pred, k, v, s){
+pred.curve <- function(k, v, s){
  k * sqrt( v^2 + s^2 )
 }
 ```
@@ -451,3 +451,57 @@ ggplot( data = predmode_sens.df, aes( x = trait ) ) +
 The mortality curve for predator with the higher body velocity is not only shallower, but it is shifted up along the y-axis, i.e., that predator is simply more lethal. So, due to this difference in lethality, the optimal solution is to spend more time "hiding out" in the refuge away from the predator with the higher search rate. 
 
 It may also line up with Os's predictions in his Fig. 3 above, where he suggests that a sit-and-pursue predator might have stronger DMIIs relative to TMIIs than an active predator (upper right quadrant). Note, however, that the calculated values for NCE and CE strength, as well as fitness, are basically the same between the two predator foraging modes.
+
+## Exploring Parameter Space
+
+What is the optimal amount of time spent in the refuge by prey, given varying levels of predator velocity? Is there a trend there?
+
+```{r, echo = FALSE}
+v_vec <- seq(0, 1, by = 0.1)
+proptime_vec <- seq( 0, 1, by = 1/24 )
+refuge_sens.df <- as.data.frame( mat.or.vec( length( v_vec ), 5) )
+colnames(refuge_sens.df) <- c("v", "speed_A", "speed_B", "proptime", "fitness" )
+
+habitatCurve.df <- as.data.frame(mat.or.vec( length( speed.vec), 3) )
+colnames(habitatCurve.df) <- c("speed", "trait", "fitness")
+habitatCurve.df$speed <- speed.vec
+habitatCurve.df$trait <- trait.vec
+
+proptimeCurve.df<- as.data.frame(mat.or.vec( length( proptime_vec ), 4) )
+colnames(proptimeCurve.df) <- c("proptime", "growth", "mort", "fitness")
+proptimeCurve.df$proptime <- proptime_vec
+
+for (i in 1:length(v_vec)){
+  # Derive optimal speed in habitat A and B
+  refuge_sens.df[i,1] <- v_vec[i]
+  
+  habitatCurve.df$fitness <- cost_constant_val * growth.curve(s = speed.vec, h = 8, R = 1) - 
+      pred_constant_val * pred.curve(k = 0.45, v = v_vec[i], s = speed.vec)
+  refuge_sens.df[i,2] <- habitatCurve.df$speed[which(habitatCurve.df$fitness == max(habitatCurve.df$fitness))]
+  
+  habitatCurve.df$fitness <- cost_constant_val * growth.curve(s = speed.vec, h = 8, R = 0.1) - 
+      pred_constant_val * pred.curve(k = 0.001, v = v_vec[i], s = speed.vec)
+  refuge_sens.df[i,3] <- habitatCurve.df$speed[which(habitatCurve.df$fitness == max(habitatCurve.df$fitness))]
+  
+  
+    # Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+  growth_A_val <- growth.curve( s = refuge_sens.df[i,2], R = 1, h = 8 ) * cost_constant_val # Growth outside refuge during an hour
+  growth_B_val <- growth.curve( s = refuge_sens.df[i,3], R = 0.1, h = 8 ) * cost_constant_val # Growth inside refuge during an hour
+  proptimeCurve.df$growth <- (1 - proptimeCurve.df$proptime) * growth_A_val + (proptimeCurve.df$proptime) * growth_B_val
+
+  # Mortality curve
+  mort_val_A <- pred_constant_val * pred.curve( k = 0.45, v = v_vec[i], s = refuge_sens.df[i,2] ) # Mortality outside the refuge during an hour
+  mort_val_B <- pred_constant_val * pred.curve( k = 0.001, v = v_vec[i], s = refuge_sens.df[i,3] ) # Mortality inside the refuge during an hour
+  proptimeCurve.df$mort <- exp( ( 1 - proptimeCurve.df$proptime ) * log( mort_val_A ) + ( proptimeCurve.df$proptime ) * log( mort_val_B ) )
+
+  # Calculate fitness and relative strength of NCEs and CEs
+  proptimeCurve.df$fitness <- 1 - ( 1 - proptimeCurve.df$growth ) - proptimeCurve.df$mort
+
+  refuge_sens.df[i,4] <- proptimeCurve.df$proptime[which(proptimeCurve.df$fitness == max(proptimeCurve.df$fitness))]
+  refuge_sens.df[i,5] <- max( proptimeCurve.df$fitness )
+}
+
+plot(x = refuge_sens.df$v, refuge_sens.df$proptime)
+```
+
+Optimal proportion of time spent in refuge increases with predator body velocity, as does speed outside the refuge.
