@@ -164,7 +164,7 @@ This produces the following trait curves and predictions under the IREF.
 growthcurve_base.df <- growthcurve.df[which(growthcurve.df$h == 8),] 
 mortcurve_base.df <- mortcurve.df[which(mortcurve.df$v == 0.2),]
 growthcurve_manip.df <- growthcurve.df[which(growthcurve.df$h == 4),]
-mortcurve_manip.df <- mortcurve.df[which(mortcurve.df$v == 0.3),]
+mortcurve_manip.df <- mortcurve.df[which(mortcurve.df$v == 0.4),]
 
 basescen.df <- merge(growthcurve_base.df, mortcurve_base.df, by = 's')
 predmanip.df <- merge(growthcurve_base.df, mortcurve_manip.df, by = 's')
@@ -314,3 +314,55 @@ Temperature-driven increases in b) predator body velocity by itself lead to a sh
 Temperature-driven increases in c) prey resource processing rate by itself, on the other hand, lead to an increase in both NCE and CE strength (by 20% and 21.9%, respectively) relative to the baseline scenario, and a stronger reduction in prey fitness (22.9%). Here, the optimal strategy is a larger reduction in foraging rates, by 33.3% relative to the baseline scenario.
 
 Together, d) they cause stronger NCEs and CEs than the baseline scenario, but the increase is not additive: NCEs are 15% stronger than the baseline scenario, CEs are 34.4% stronger, and fitness is reduced by 29.1%. Further, the optimal antipredator strategy (i.e., the optimal displacement rate) is the same as it is when only prey resource processing rates are affected by temperature.
+
+Let's take the "both" scenario and make it into a figure in-line with the others, as of 5/29/25.
+
+```{r}
+warming.df <- cbind(bothmanip.df, basescen.df$growth)
+warming.df <- cbind(warming.df, basescen.df$mort)
+colnames(warming.df) <- c("s", "h", "growth", "v", "mort", "fitness", "growth_baseline", "mort_baseline")
+
+# Fig. 6 - Warming
+warming_1.plot <- ggplot( data = warming.df, aes( x = s ) ) +
+  geom_line( aes( y = growth ), color = "blue" ) +
+  geom_line( aes( y = mort ), color = "red", linetype = "solid" ) +
+  geom_line( aes( y = growth_baseline ), color = "blue", linetype = "dashed" ) +
+  geom_line( aes( y = mort_baseline ), color = "red", linetype = "dashed" ) +
+  geom_ribbon( aes( ymin = growth, ymax = growth_baseline ), fill = "blue", alpha = 0.25 )  +
+  geom_ribbon( aes( ymin = mort, ymax = mort_baseline ), fill = "red", alpha = 0.25 )  +
+  geom_segment(aes( x = 0.5, y = 0.95, xend = 0.5, yend = 0.85), arrow = arrow(length = unit(0.5, "cm") ), color = "blue", size = 0.5 ) +
+  geom_segment(aes( x = 0.5, y = 0.425, xend = 0.5, yend = 0.525), arrow = arrow(length = unit(0.5, "cm") ), color = "red", size = 0.5 ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  scale_x_reverse(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 500, 1000) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
+         axis.title.x = element_blank(),
+         axis.text.x = element_blank() )
+
+warming_2.plot <- ggplot( data = warming.df, aes( x = s ) ) +
+  geom_line( aes( y = growth, colour = "Growth" ), ) +
+  geom_line( aes( y = mort, colour = "Mortality" ), linetype = "solid" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  geom_vline( xintercept = bothmanip_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  annotate( "text", x = bothmanip_optim - 0.1, y = 0.9, label = paste0("NCE = ", bothmanip_optim_NCE), size = 7/.pt  ) +
+  annotate( "text", x = bothmanip_optim - 0.1, y = 0.6, label = paste0("Fitness = ", bothmanip_optim_fitness), size = 7/.pt  ) +
+  annotate( "text", x = bothmanip_optim - 0.1, y = 0.2, label = paste0("CE = ", bothmanip_optim_CE), size = 7/.pt  ) +
+  scale_x_reverse(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 500, 1000) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
+  theme( legend.position = "bottom" )
+
+warming.legend <- get_legend_35(warming_2.plot)
+warming_2.plot <- warming_2.plot + theme( legend.position = "none" )
+
+warming.fig <- plot_grid( warming_1.plot, warming_2.plot, ncol = 1, labels = "auto", hjust = -12.5, align = c("hv") )
+warming.fig <- plot_grid( warming.fig, warming.legend, ncol = 1, rel_heights = c(1, 0.1) )
+
+ggsave("fig6.png", plot = warming.fig, dpi = 300)
+```
+

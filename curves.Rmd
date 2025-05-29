@@ -248,26 +248,28 @@ fig1.plot <- plot_grid( fig1.plot, fig1.legend, rel_heights = c(1, 0.1), ncol = 
 ```
 
 ```{r}
-# Fig. 2
-baseline.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
-  geom_smooth( aes( y = growth_curve ), se = FALSE, color = "blue" ) +
-  geom_smooth( aes( y = mort_curve ), se = FALSE, color = "red", linetype = "dashed" ) +
+# Fig. 2 - predator density
+preddens.df <- cbind(preddens.df, baseline.df$mort_curve)
+colnames(preddens.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mort_baseline")
+
+preddens_1.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve ), color = "blue" ) +
+  geom_line( aes( y = mort_curve ), color = "red", linetype = "solid" ) +
+  geom_line( aes( y = mort_baseline ), color = "red", linetype = "dashed" ) +
+  geom_ribbon( aes( ymin = mort_curve, ymax = mort_baseline ), fill = "red", alpha = 0.25 )  +
+  geom_segment(aes( x = 0.5, y = 0.3, xend = 0.5, yend = 0.45), arrow = arrow(length = unit(0.5, "cm") ), color = "red", size = 1 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
-  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = baseline_optim + 0.15, y = 0.95, label = "NCE = 0.12", size = 7/.pt  ) +
-  annotate( "text", x = baseline_optim + 0.15, y = 0.55, label = "0.66", size = 7/.pt  ) +
-  annotate( "text", x = baseline_optim + 0.15, y = 0.075, label = "CE = 0.22", size = 7/.pt  ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
          axis.title.x = element_blank(),
          axis.text.x = element_blank() )
 
-preddens.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
-  geom_smooth( aes( y = growth_curve ), se = FALSE, color = "blue" ) +
-  geom_smooth( aes( y = mort_curve ), se = FALSE, color = "red", linetype = "dashed" ) +
+preddens_2.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, colour = "Growth" ), ) +
+  geom_line( aes( y = mort_curve, colour = "Mortality" ), linetype = "solid" ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
@@ -277,15 +279,43 @@ preddens.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
   annotate( "text", x = preddens_optim + 0.15, y = 0.15, label = "CE = 0.32", size = 7/.pt  ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
+  theme( legend.position = "bottom" )
+
+preddens.legend <- get_legend_35(preddens_2.plot)
+preddens_2.plot <- preddens_2.plot + theme( legend.position = "none" )
+
+preddens.fig <- plot_grid( preddens_1.plot, preddens_2.plot, ncol = 1, labels = "auto", hjust = -12.5, align = c("hv") )
+preddens.fig <- plot_grid( preddens.fig, preddens.legend, ncol = 1, rel_heights = c(1, 0.1) )
+
+ggsave("fig2.png", plot = preddens.fig, dpi = 300)
+```
+
+
+```{r}
+# Fig. 3 - predator hunting mode
+predmode.df <- cbind(predmode.df, baseline.df$mort_curve)
+colnames(predmode.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mort_baseline")
+
+predmode_1.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve ), color = "blue" ) +
+  geom_line( aes( y = mort_curve ), color = "red", linetype = "solid" ) +
+  geom_line( aes( y = mort_baseline ), color = "red", linetype = "dashed" ) +
+  geom_ribbon( aes( ymin = mort_curve, ymax = mort_baseline ), fill = "red", alpha = 0.25 )  +
+  geom_segment(aes( x = 0.5, y = 0.3, xend = 0.5, yend = 0.75), arrow = arrow(length = unit(0.5, "cm") ), color = "red", size = 1 ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
          axis.title.x = element_blank(),
-         axis.text.x = element_blank(),
-         axis.title.y = element_blank(),
-         axis.text.y = element_blank() )
+         axis.text.x = element_blank() )
 
-predmode.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
-  geom_smooth( aes( y = growth_curve ), se = FALSE, color = "blue" ) +
-  geom_smooth( aes( y = mort_curve ), se = FALSE, color = "red", linetype = "dashed" ) +
+predmode_2.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, colour = "Growth" ), ) +
+  geom_line( aes( y = mort_curve, colour = "Mortality" ), linetype = "solid" ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
@@ -295,11 +325,42 @@ predmode.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
   annotate( "text", x = predmode_optim + 0.15, y = 0.5, label = "CE = 0.80", size = 7/.pt  ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
+  theme( legend.position = "bottom" )
 
-prey_h.plot <- ggplot( data = prey_h.df, aes( x = trait ) ) +
-  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
-  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
+predmode.legend <- get_legend_35(predmode_2.plot)
+predmode_2.plot <- predmode_2.plot + theme( legend.position = "none" )
+
+predmode.fig <- plot_grid( predmode_1.plot, predmode_2.plot, ncol = 1, labels = "auto", hjust = -12.5, align = c("hv") )
+predmode.fig <- plot_grid( predmode.fig, predmode.legend, ncol = 1, rel_heights = c(1, 0.1) )
+
+ggsave("fig4.png", plot = predmode.fig, dpi = 300)
+```
+
+```{r}
+prey_h.df <- cbind(prey_h.df, baseline.df$growth_curve)
+colnames(prey_h.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE", "growth_baseline")
+
+# Fig. 4 - Prey handling time
+prey_h_1.plot <- ggplot( data = prey_h.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve ), color = "blue" ) +
+  geom_line( aes( y = mort_curve ), color = "red", linetype = "solid" ) +
+  geom_line( aes( y = growth_baseline ), color = "blue", linetype = "dashed" ) +
+  geom_ribbon( aes( ymin = growth_baseline, ymax = growth_curve ), fill = "blue", alpha = 0.25 )  +
+  geom_segment(aes( x = 0.5, y = 0.85, xend = 0.5, yend = 0.7), arrow = arrow(length = unit(0.5, "cm") ), color = "blue", size = 1 ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
+         axis.title.x = element_blank(),
+         axis.text.x = element_blank() )
+
+prey_h_2.plot <- ggplot( data = prey_h.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, colour = "Growth" ), ) +
+  geom_line( aes( y = mort_curve, colour = "Mortality" ), linetype = "solid" ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
@@ -310,21 +371,18 @@ prey_h.plot <- ggplot( data = prey_h.df, aes( x = trait ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_colour_manual(name = "Curve", values = c("blue", "red")) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         axis.title.y = element_blank(), 
-         axis.text.y = element_blank(),
-         legend.position = "bottom" )
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
+  theme( legend.position = "bottom" )
 
+prey_h.legend <- get_legend_35(prey_h_2.plot)
+prey_h_2.plot <- prey_h_2.plot + theme( legend.position = "none" )
 
+prey_h.fig <- plot_grid( prey_h_1.plot, prey_h_2.plot, ncol = 1, labels = "auto", hjust = -12.5, align = c("hv") )
+prey_h.fig <- plot_grid( prey_h.fig, prey_h.legend, ncol = 1, rel_heights = c(1, 0.1) )
 
-iref.legend <- get_legend_35(prey_h.plot)
-prey_h.plot <- prey_h.plot + theme( legend.position = "none" )
-
-iref.fig <- plot_grid( baseline.plot, preddens.plot, predmode.plot, prey_h.plot, ncol = 2, labels = "auto", align = c("hv") )
-iref.fig <- plot_grid( iref.fig, iref.legend, ncol = 1, rel_heights = c(1, 0.1) )
-
-# ggsave("fig2.png", plot = iref.fig, dpi = 300)
+ggsave("fig5.png", plot = prey_h.fig, dpi = 300)
 ```
+
 # Predator Density Effects
 
 For this last section, I'd like to make a figure illustrating the very simple, intuitive point that below a certain predator density, the optimal strategy is  actually to not respond at all.
@@ -367,6 +425,6 @@ thresh.plot <- ggplot( data = thresh_plot.df, aes( x = preddens, y = optim ) ) +
   scale_x_continuous(expand = c(0, 0) ) + 
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
 
-# ggsave("fig3.png", plot = thresh.plot, dpi = 300)
+ggsave("fig3.png", plot = thresh.plot, dpi = 300)
 
 ```
