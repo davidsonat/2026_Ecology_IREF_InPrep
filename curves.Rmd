@@ -270,10 +270,13 @@ preddens_1.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
 preddens_2.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, colour = "Growth" ), ) +
   geom_line( aes( y = mort_curve, colour = "Mortality" ), linetype = "solid" ) +
+  annotate( "rect", xmin = baseline_optim, xmax = preddens_optim, ymin = 0, ymax = 1, fill = "green", alpha = 0.25 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
-  geom_vline( xintercept = preddens_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  geom_segment(aes( x = baseline_optim + 0.01, y = 0.25, xend = preddens_optim - 0.01, yend = 0.25), arrow = arrow(length = unit(0.5, "cm") ), color = "green", size = 1 ) +
+  geom_vline( xintercept = preddens_optim,  size = 0.5, linetype = "solid", colour = "green" ) +
   annotate( "text", x = preddens_optim + 0.15, y = 0.95, label = "NCE = 0.20", size = 7/.pt  ) +
   annotate( "text", x = preddens_optim + 0.15, y = 0.45, label = "0.48", size = 7/.pt  ) +
   annotate( "text", x = preddens_optim + 0.15, y = 0.15, label = "CE = 0.32", size = 7/.pt  ) +
@@ -316,13 +319,16 @@ predmode_1.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
 predmode_2.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, colour = "Growth" ), ) +
   geom_line( aes( y = mort_curve, colour = "Mortality" ), linetype = "solid" ) +
+  annotate( "rect", xmin = baseline_optim, xmax = predmode_optim, ymin = 0, ymax = 1, fill = "green", alpha = 0.25 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
-  geom_vline( xintercept = predmode_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  geom_vline( xintercept = predmode_optim,  size = 0.5, linetype = "solid", colour = "green" ) +
   annotate( "text", x = predmode_optim + 0.15, y = 0.95, label = "NCE = 0.09", size = 7/.pt  ) +
   annotate( "text", x = predmode_optim + 0.15, y = 0.8, label = "0.11", size = 7/.pt  ) +
   annotate( "text", x = predmode_optim + 0.15, y = 0.5, label = "CE = 0.80", size = 7/.pt  ) +
+  geom_segment(aes( x = baseline_optim + 0.05, y = 0.25, xend = predmode_optim + 0.01, yend = 0.25), arrow = arrow(length = unit(0.5, "cm") ), color = "green", size = 1 ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_colour_manual(name = "Curve", values = c("blue", "red")) +
@@ -361,13 +367,16 @@ prey_h_1.plot <- ggplot( data = prey_h.df, aes( x = trait ) ) +
 prey_h_2.plot <- ggplot( data = prey_h.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, colour = "Growth" ), ) +
   geom_line( aes( y = mort_curve, colour = "Mortality" ), linetype = "solid" ) +
+  annotate( "rect", xmin = baseline_optim, xmax = prey_h_optim, ymin = 0, ymax = 1, fill = "green", alpha = 0.25 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
-  geom_vline( xintercept = prey_h_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  geom_vline( xintercept = prey_h_optim,  size = 0.5, linetype = "solid", colour = "green" ) +
+  geom_segment(aes( x = baseline_optim + 0.05, y = 0.25, xend = prey_h_optim + 0.01, yend = 0.25), arrow = arrow(length = unit(0.5, "cm") ), color = "green", size = 1 ) +
   annotate( "text", x = prey_h_optim + 0.15, y = 0.8, label = "NCE = 0.29", size = 7/.pt  ) +
   annotate( "text", x = prey_h_optim + 0.15, y = 0.5, label = "0.19", size = 7/.pt  ) +
-  annotate( "text", x = prey_h_optim + 0.15, y = 0.25, label = "CE = 0.52", size = 7/.pt  ) +
+  annotate( "text", x = prey_h_optim + 0.15, y = 0.2, label = "CE = 0.52", size = 7/.pt  ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_colour_manual(name = "Curve", values = c("blue", "red")) +

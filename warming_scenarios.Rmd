@@ -345,12 +345,15 @@ warming_2.plot <- ggplot( data = warming.df, aes( x = s ) ) +
   geom_line( aes( y = growth, colour = "Growth" ), ) +
   geom_line( aes( y = mort, colour = "Mortality" ), linetype = "solid" ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
+  annotate( "rect", xmin = basescen_optim, xmax = bothmanip_optim, ymin = 0, ymax = 1, fill = "green", alpha = 0.25 ) +
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
-  geom_vline( xintercept = bothmanip_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
-  annotate( "text", x = bothmanip_optim - 0.1, y = 0.9, label = paste0("NCE = ", bothmanip_optim_NCE), size = 7/.pt  ) +
-  annotate( "text", x = bothmanip_optim - 0.1, y = 0.6, label = paste0("Fitness = ", bothmanip_optim_fitness), size = 7/.pt  ) +
-  annotate( "text", x = bothmanip_optim - 0.1, y = 0.2, label = paste0("CE = ", bothmanip_optim_CE), size = 7/.pt  ) +
+  geom_vline( xintercept = basescen_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  geom_vline( xintercept = bothmanip_optim,  size = 0.5, linetype = "solid", colour = "green" ) +
+  geom_segment(aes( x = basescen_optim + 0.01, y = 0.25, xend = bothmanip_optim - 0.01, yend = 0.25), arrow = arrow(length = unit(0.5, "cm") ), color = "green", size = 1 ) +
+  annotate( "text", x = bothmanip_optim + 0.15, y = 0.95, label = paste0("NCE = ", bothmanip_optim_NCE), size = 7/.pt  ) +
+  annotate( "text", x = bothmanip_optim + 0.15, y = 0.75, label = paste0("Fitness = ", bothmanip_optim_fitness), size = 7/.pt  ) +
+  annotate( "text", x = bothmanip_optim + 0.15, y = 0.2, label = paste0("CE = ", bothmanip_optim_CE), size = 7/.pt  ) +
   scale_x_reverse(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 500, 1000) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_colour_manual(name = "Curve", values = c("blue", "red")) +
