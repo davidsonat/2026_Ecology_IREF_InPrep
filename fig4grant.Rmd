@@ -1,0 +1,105 @@
+---
+title: "Grant Proposal Fig. 4"
+author: "Andy"
+date: "2025-06-30"
+output: pdf_document
+---
+
+This document contains an attempt to recreate Fig. 4 in the grant proposal, with the goal of determining why the percentage of the total predator effect composed of the NCE generally levels off given increasing risk.
+
+```{r, warning = FALSE}
+library(ggplot2)
+library(dplyr)
+
+# Setting the range of prey displacement rate
+trait.vec <- seq(0, 1, by = 0.01)
+speed.vec <- 1 - trait.vec
+
+# These formulas are simplified by setting some of the values as constants
+# r is always assumed to be 1, while k, s, and v are manipulated values
+pred.curve <- function(k, v, s){
+  k*sqrt(v^2 + s^2)
+}
+
+# R is always assumed to be 1, while s and h are manipulated values
+growth.curve <- function(s, R, h){
+  (R * s)/(1 + s*R*h)
+}
+
+k_vec <- c(0, 0.1, 0.13, 0.2, 0.3, 0.4, 0.6, 1) # Range of values used by Scott for Fig. 4 in the grant proposal
+h_val <- 8
+R_val <- 1
+cost_constant_val <- 9
+v_val <- 0.2
+pred_constant_val <- 0.98058
+
+# Generate growth and mortality curves for each value of predator density (k_vec)
+fig4.df <- as.data.frame( mat.or.vec( length( trait.vec ) * length(k_vec), 7) )
+colnames(fig4.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "pct_NCE", "pred_dens")
+
+row <- 0
+
+for (i in 1:length(k_vec)){
+  for (j in 1:length(trait.vec)){
+    row <- row + 1
+    fig4.df[row, 1] <- trait.vec[j]
+    fig4.df[row, 2] <- speed.vec[j]
+    fig4.df[row, 3] <- cost_constant_val * growth.curve( s = fig4.df[row, 2], R = R_val, h = h_val )
+    fig4.df[row, 4] <- pred_constant_val * pred.curve( k = k_vec[i], v = v_val, s = fig4.df[row, 2] )
+    fig4.df[row, 5] <- fig4.df[row, 3] - fig4.df[row, 4]
+    fig4.df[row, 6] <- (1 - fig4.df[row, 3])/((1 - fig4.df[row, 3]) + fig4.df[row, 4])
+    fig4.df[row, 7] <- k_vec[i]
+  }
+}
+
+
+# Summarize data by finding optimum fitness for each value of predator density
+optim.df <- fig4.df %>%
+  group_by( pred_dens ) %>%
+  slice( which.max(fitness) )
+
+fig4.df$pred_dens <- as.factor(fig4.df$pred_dens)
+optim.df[1, 6] <- 0 # Removing an NA created by dividing by zero where pred_dens = 0
+
+# Plot IREF curves by predator density
+ggplot( data = fig4.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve ), color = "blue" ) +
+  geom_line( aes( y = mort_curve ), color = "red" ) +
+  geom_line( aes( y = fitness ), color = "green" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  facet_wrap(~pred_dens) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
+
+# Plot % contribution of NCE to total predator effect by predator density
+ggplot( data = optim.df, aes( x = pred_dens ) ) +
+  geom_point( aes( y = pct_NCE ) ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("% NCE contribution to") +
+  xlab("Predator Density") +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
+```
+
+The reason that the NCE's contribution to the total predator effect tends to level off with increasing risk seems to occur for two main reasons. 
+
+The optimal RITR seems to occur roughly around the inflection point of the growth curve, except when predator density (and therefore risk) is low (k > 0.2) and a weak response is expected by the prey.
+
+Put another way, as risk increases, there is eventually a point at which the benefit of the RITR (in terms of reduction of mortality due to predation) becomes too costly. Quantitatively, this is probably where the slope (or derivative) of the growth curve exceeds -1 (or, the increase in cost for a 1 unit decrease in displacement rate exceeds greatly exceeds the decrease in mortality afforded by it).
+
+This finding is probably general in cases where the growth curve is concave-down, while predation risk declines in a linear or saturating way.
+
+Incidentally, the inflection point is at around a displacement rate of 375 (calculated below using the R package 'inflection').
+
+```{r, warning=FALSE}
+library(inflection)
+
+x <- speed.vec
+y <- cost_constant_val * growth.curve( s = speed.vec, R = R_val, h = h_val )
+cc=check_curve(x,y);cc
+ede(x, y, cc$index)
+```
+
+Note that this is the trait value, so to get the displacement rate you must subtract it from 1, then multiply by 1000.
