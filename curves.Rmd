@@ -5,6 +5,15 @@ date: "2025-01-21"
 output: pdf_document
 ---
 
+```{r, include = FALSE}
+library(ggplot2)
+library(cowplot)
+library(ggbrace)
+library(knitr)
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
 # Prey Displacement Rate
 
 ## Part 1: Predator Encounter Rate
@@ -176,10 +185,6 @@ prey_h_optim_NCE <- 1 - prey_h_optim_CE - prey_h_optim_fitness
 ```
 
 ```{r}
-library(ggplot2)
-library(cowplot)
-library(ggbrace)
-
 # Fig. 1
 fig1_a.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   geom_smooth( aes( y = growth_curve ), se = FALSE, color = "blue" ) +
