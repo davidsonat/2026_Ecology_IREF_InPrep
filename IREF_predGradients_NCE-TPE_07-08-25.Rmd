@@ -14,7 +14,9 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
 
-This document contains an attempt to explore how the relative contribution of NCEs to the total predator effect varies across a risk gradient. This is similar to Fig. 4 in the grant proposal, which uses predator density as a proxy for risk.
+This document contains an attempt to explore how the relative contribution of NCEs to the total predator effect varies across a risk gradient. This exploration is an attempt to flesh out the theory paper and help distinguish it from a rehash of Scott's 2013 paper in Oecologia and ideas in the 2020 Ecology paper.
+
+This is similar to Fig. 4 in the grant proposal, which uses predator density as a proxy for risk.
 
 ![Fig. 4 from Grant Proposal](grantfig4.png)
 
