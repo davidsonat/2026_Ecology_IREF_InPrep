@@ -1,6 +1,6 @@
 ---
-title: "NSF Equations"
-author: "Andy"
+title: "IREF - NSF Grant Scenarios"
+author: "Andy Davidson"
 date: "2025-01-21"
 output: pdf_document
 ---

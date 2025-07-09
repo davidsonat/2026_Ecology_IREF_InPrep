@@ -1,5 +1,5 @@
 ---
-title: "Exploring Risk Gradients"
+title: "IREF - Exploring Risk Gradients"
 author: "Andy Davidson"
 date: "2025-07-08"
 output: pdf_document
@@ -18,7 +18,7 @@ This document contains an attempt to explore how the relative contribution of NC
 
 This is similar to Fig. 4 in the grant proposal, which uses predator density as a proxy for risk.
 
-![Fig. 4 from Grant Proposal](grantfig4.png)
+![Fig. 4 from Grant](IREF_NSFGrant_fig4.png)
 
 ---
 

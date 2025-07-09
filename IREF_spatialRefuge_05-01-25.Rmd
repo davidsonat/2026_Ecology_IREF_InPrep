@@ -1,6 +1,6 @@
 ---
-title: "Refuge Scenarios"
-author: "Andy"
+title: "IREF - Spatial Refuge Scenarios"
+author: "Andy Davidson"
 date: "2025-05-01"
 output: pdf_document
 ---
@@ -19,7 +19,7 @@ The version of the IREF included in the grant proposal attempts to tackle some o
 
 Of particular importance to this question are the following figures, from his textbook (and Schmitz et al. 2004 Ecol Lett):
 
-![Fig. 2 from Schmitz et al. 2004](Schmitz_Fig2.png)
+![Fig. 2 from Schmitz et al](Schmitz_spatialRefuge_Fig2.png)
 
 ![Fig. 3 from Schmitz et al. 2004](Schmitz_Fig3.png)
 
