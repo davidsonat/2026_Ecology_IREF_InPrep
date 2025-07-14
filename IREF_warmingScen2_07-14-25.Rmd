@@ -1,0 +1,162 @@
+---
+title: "IREF - Warming Scenarios"
+author: "Andy Davidson"
+date: "2025-04-10"
+output: pdf_document
+---
+
+```{r, echo = FALSE, warning = FALSE}
+library(ggplot2)
+library(formatR)
+library(knitr)
+library(cowplot)
+library(dplyr)
+library(ggpattern)
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+# Model Description
+
+For the following scenarios, we will consider a predator-prey system where the prey can move to different habitats along a temperature gradient. We will simulate this for a baseline scenario and several "warmed" scenarios, which we will accomplish by manipulating specific parameters relating to the foraging process of the predator and prey.
+
+
+
+We will describe the process for deriving the mortality- and growth-trait curves below, then use those curves to predict the optimal antipredator strategy and the strength of CEs and NCEs under warming conditions.
+
+## The Mortality-Trait Curve
+
+The mortality-trait curve is determined by the prey's likelihood of being killed, which is directly related to predator density. The predator in this case inhabits only habitats along the temperature gradient that are thermally optimal for it, and the prey and the predator share a thermal optimum. The probability of the prey being killed is modeled using a normal curve as:
+
+$$ P_{mort}(T) = \frac{1}{\sigma_{T}\sqrt{2\pi}}e^{\frac{-(T-\mu_{T})}{2\sigma_{T}^2}}$$
+
+where $T$ is temperature in degrees Celsius, $\mu_{T}$ is the mean temperature of the distribution (i.e., where it peaks, the predator's thermal optimum), and $\sigma_{T}$ is the standard deviation of that mean.
+
+We will anchor the mean of the predator's distribution at a the far left of the plot.
+
+
+```{r}
+## The mortality-trait curve
+# sigT is the standard deviation of the probability distribution
+# muT is the mean temperature of the probability distribution
+# temp_C is the temperature at which the probability of mortality is being predicted
+mort.curve_warming <- function( sigT, 
+                                muT, 
+                                temp_C){
+ ( 1 / ( sqrt( 2 * pi * sigT^2 ) ) ) * exp( - ( ( ( temp_C - muT )^2 ) / ( 2 * sigT^2 ) ) )
+}
+
+sigT.val <- 0.8 # Std deviation of the distribution, arbitrarily set such that p(mort) at muT is ~0.5
+muT.val <- 20 # Mean temperature of the distribution
+
+
+## Visualize the mortality curve
+
+# Define gradient of temperatures
+temp.vec <- seq(20, 30, by = 0.1)
+
+# Write predicted mortality to a dataframe
+iref_warming_cool.df <- as.data.frame( mat.or.vec( length(temp.vec), 2 ) )
+colnames(iref_warming_cool.df) <- c( "temp_C", "mortcurve" )
+iref_warming_cool.df$temp_C <- temp.vec
+iref_warming_cool.df$mortcurve <- mort.curve_warming( sigT = sigT.val, 
+                                              muT = muT.val, 
+                                              temp_C = temp.vec )
+
+
+# Plot it
+ggplot( data = iref_warming_cool.df, aes( x = temp_C ) ) +
+  geom_line( aes(y = mortcurve), colour = "red") +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Probability of Mortality") +
+  xlab("Temperature (°C)") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(20, 25, 30) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
+
+```
+\pagebreak
+
+## The Growth-Trait Curve
+
+Meanwhile, we will assume that the growth curve follows the general form of an Arrhenius-quadratic thermal performance curve, where:
+
+$$ Y = ce^{b(-1/kT) + q(-1/kT)^2}$$
+
+where...
+
+```{r}
+## The growth-trait curve
+# c.growth is a normalization constant
+# b.growth and q.growth are scaling constants
+# temp_C is temperature in degrees Celsius
+growth.curve_warming <- function( temp_C ){
+  (1 / 0.394841840 ) * exp( ( -0.03201 * temp_C^2 ) + ( 1.22490 * temp_C ) - 12.62327  )
+}
+
+iref_warming_cool.df$growthcurve <- growth.curve_warming( temp_C = temp.vec )
+
+iref_warming_cool.df$fitness <- 1 - (1 - iref_warming_cool.df$growthcurve) - iref_warming_cool.df$mortcurve
+iref_warming_cool_optim.df <- iref_warming_cool.df %>%
+  slice( which.max(fitness) )
+
+# Plot it
+ggplot( data = iref_warming_cool.df, aes( x = temp_C ) ) +
+  geom_line( aes(y = growthcurve), colour = "blue") +
+  geom_line( aes(y = mortcurve), colour = "red") +
+theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Temperature (°C)") +
+  geom_rect( data = iref_warming_cool_optim.df, aes(xmin = temp_C - 0.1, xmax = temp_C + 0.1, ymin = growthcurve, ymax = 0.998), color = "gray2", fill = "lightblue", alpha = 0.5) +
+  geom_rect( data = iref_warming_cool_optim.df, aes(xmin = temp_C - 0.1, xmax = temp_C + 0.1, ymin = 0.001, ymax = mortcurve), color = "gray2", fill = "red", alpha = 0.5) +  
+  geom_rect( data = iref_warming_cool_optim.df, aes(xmin = temp_C - 0.1, xmax = temp_C + 0.1, ymin = mortcurve, ymax = growthcurve), color = "gray2", fill = "lightgreen", alpha = 0.5) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(20, 25, 30) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
+```
+\pagebreak
+
+# Warming Scenarios 
+
+We will now explore how, taken together, changes in the growth and mortality curve due to warming influence this predator-prey interaction. 
+
+Assuming predators follow their optimum but prey determine where to go depending on the predator's distribution:
+
+```{r}
+# Set predator params such that mu follows a 2.5C increase in temperature 
+sigT.val <- 0.8 # Std deviation of the distribution, arbitrarily set such that p(mort) at muT is ~0.5
+muT.val <- 22.5 # Mean temperature of the distribution
+
+temp.vec <- seq(20, 30, by = 0.1)
+
+# Write predicted mortality to a dataframe
+iref_warming_hot.df <- as.data.frame( mat.or.vec( length(temp.vec), 2 ) )
+colnames(iref_warming_hot.df) <- c( "temp_C", "mortcurve" )
+iref_warming_hot.df$temp_C <- temp.vec
+iref_warming_hot.df$mortcurve <- mort.curve_warming( sigT = sigT.val, 
+                                              muT = muT.val, 
+                                              temp_C = temp.vec )
+
+# Write predicted growth to a dataframe
+iref_warming_hot.df$growthcurve <- growth.curve_warming( temp_C = temp.vec )
+
+iref_warming_hot.df$fitness <- 1 - (1 - iref_warming_hot.df$growthcurve) - iref_warming_hot.df$mortcurve
+iref_warming_hot_optim.df <- iref_warming_hot.df %>%
+  filter(temp_C > 22.5) %>%
+  slice( which.max(fitness) )
+
+# Plot it
+ggplot( data = iref_warming_hot.df, aes( x = temp_C ) ) +
+  geom_line( aes(y = growthcurve), colour = "blue") +
+  geom_line( aes(y = mortcurve), colour = "red") +
+theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Temperature (°C)") +
+  geom_rect( data = iref_warming_hot_optim.df, aes(xmin = temp_C - 0.1, xmax = temp_C + 0.1, ymin = growthcurve, ymax = 0.998), color = "gray2", fill = "lightblue", alpha = 0.5) +
+  geom_rect( data = iref_warming_hot_optim.df, aes(xmin = temp_C - 0.1, xmax = temp_C + 0.1, ymin = 0.001, ymax = mortcurve), color = "gray2", fill = "red", alpha = 0.5) +  
+  geom_rect( data = iref_warming_hot_optim.df, aes(xmin = temp_C - 0.1, xmax = temp_C + 0.1, ymin = mortcurve, ymax = growthcurve), color = "gray2", fill = "lightgreen", alpha = 0.5) +
+  geom_rect_pattern( xmin = 20.001, xmax = 22.5, ymin = 0.001, ymax = 0.998, pattern = "stripe", pattern_fill = "red", pattern_color = "red", fill = NA, color = "red" ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(20, 25, 30) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
+```
