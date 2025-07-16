@@ -16,24 +16,33 @@ knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
 ```
 
+Climate change is expected to have complex effects on predator-prey interactions, in part because temperature influences a broad range of organism-level processes (e.g., metabolism, growth, reproduction, and mortality) that can in turn impact how predators and their prey interact (Brown et al. 2004; Dell et al. 2011; Rall et al. 2010). Warming's potential impacts on elements of the consumptive effects (CEs) of predators on their prey (e.g., the rate at which predators encounter, subdue, and consume their prey) have been a focal point of recent research (e.g., Brose et al. 2012; Dell et al. 2014; Romero et al. 2018). However, it remains unclear how warming may impact components of predation risk effects, or "nonconsumptive" predator effects (NCEs), which have been argued to be as important or even more important to populations, communities, and food webs than their consumptive effects (Werner and Peacor 2003; Peckarsky et al. 2008; Preisser et al. 2005).
+
+Predicting how warming will impact predation risk effects may be especially challenging, because risk effects involve a chain of complex, context-dependendent, and multi-faceted processes, each of which may be sensitive to temperature to differing degrees (Angilletta 2009; Dell et al. 2011). Broadly defined, predation risk effects involve the process by which prey respond to their predators to mitigate their predation risk, usually by changing elements of traits such as their behavior, physiology, and morphology (termed a risk-induced trait response, or RITR); the costs to prey fitness associated with that response (termed nonconsumptive effects, or NCEs); and any resulting impacts on other species the prey interact with (termed trait-mediated indirect effects, or TMIEs). Thus, one way that warming can impact risk effects is by altering either the costs associated with responding to predators, or elements that influence the benefits of the trait response, such as the predator's foraging rates.
+
+For example, Veldhuis et al. 2020 suggested that when prey shift their foraging to warmer but less risky times of day in response to nocturnal predators, warming may lead to stronger NCEs by making this trade-off more costly. On the other hand, if warming makes the risk vs. thermal stress trade-off too costly, prey may be forced into more frequent encounters with predators (Green et al. 2025). Other studies have suggested that warming may lead to weaker NCEs by reducing the degree to which prey overlap spatially with their predators (Barton 2010), or that warming may offset the negative effects of risk if prey are below their thermal optimum (Matassa and Trussell 2015). 
+
+The IREF is well suited for exploring how warming will impact predation risk effects, because it can explicitly capture the relationship between temperature and the costs and benefits of the prey RITR, which we can then use to determine changes in CE and NCE strength.
+
+The general purpose of this document is to provide two generic examples outlining how we can use the IREF to explore how warming might impact predation risk effects.
+
+\pagebreak
+
 # Model Description
 
-For the following scenarios, we will consider a predator-prey system where the prey can move to different habitats along a temperature gradient. We will simulate this for a baseline scenario and several "warmed" scenarios, which we will accomplish by manipulating specific parameters relating to the foraging process of the predator and prey.
-
-
+For the following scenarios, we will consider a predator-prey system where the prey can avoid predation by moving to different habitats along a temperature gradient. We will simulate this for a baseline scenario and a "warmed" scenarios, which we will accomplish by manipulating specific parameters relating to the foraging process of the predator and prey.
 
 We will describe the process for deriving the mortality- and growth-trait curves below, then use those curves to predict the optimal antipredator strategy and the strength of CEs and NCEs under warming conditions.
 
 ## The Mortality-Trait Curve
 
-The mortality-trait curve is determined by the prey's likelihood of being killed, which is directly related to predator density. The predator in this case inhabits only habitats along the temperature gradient that are thermally optimal for it, and the prey and the predator share a thermal optimum. The probability of the prey being killed is modeled using a normal curve as:
+The mortality-trait curve is determined by the prey's likelihood of being killed, which we will define as being directly related to predator density. In this first scenario, the predator inhabits only habitats along the temperature gradient that are thermally optimal for it and cannot use habitats outside that range. The probability of the prey being killed is modeled using a normal curve as:
 
 $$ P_{mort}(T) = \frac{1}{\sigma_{T}\sqrt{2\pi}}e^{\frac{-(T-\mu_{T})}{2\sigma_{T}^2}}$$
 
 where $T$ is temperature in degrees Celsius, $\mu_{T}$ is the mean temperature of the distribution (i.e., where it peaks, the predator's thermal optimum), and $\sigma_{T}$ is the standard deviation of that mean.
 
-We will anchor the mean of the predator's distribution at a the far left of the plot.
-
+We will anchor the mean of the predator's distribution at a the far left of the plot, such that the greatest risk of predation occurs when prey are at the far left end of the temperature gradient.
 
 ```{r}
 ## The mortality-trait curve
@@ -63,7 +72,6 @@ iref_warming_cool.df$mortcurve <- mort.curve_warming( sigT = sigT.val,
                                               muT = muT.val, 
                                               temp_C = temp.vec )
 
-
 # Plot it
 ggplot( data = iref_warming_cool.df, aes( x = temp_C ) ) +
   geom_line( aes(y = mortcurve), colour = "red") +
@@ -79,11 +87,13 @@ ggplot( data = iref_warming_cool.df, aes( x = temp_C ) ) +
 
 ## The Growth-Trait Curve
 
-Meanwhile, we will assume that the growth curve follows the general form of an Arrhenius-quadratic thermal performance curve, where:
+Meanwhile, we will assume that the prey's growth curve follows the general form of an Arrhenius-quadratic thermal performance curve, where:
 
 $$ Y = ce^{b(-1/kT) + q(-1/kT)^2}$$
 
 where...
+
+**REWRITE THIS IN VERTEX FORM**
 
 ```{r}
 ## The growth-trait curve
@@ -160,3 +170,13 @@ theme_classic( base_size = 10, base_line_size = 1 ) +
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
 ```
+
+
+**FURTHER CONSIDERATIONS:**
+
+**WHAT IF PREDATORS GET HUNGRIER WITH INCREASED TEMPERATURE?**
+**WHAT IF WE EXPRESS THIS IN A DIFFERENT WAY, E.G., PROPORTION OF TIME SPENT IN HABITAT A OR B?**
+**SCENARIOS WITH DIFFERENT PREDATOR AND PREY OPTIMUMS? FACTORIAL DESIGN**
+**OR, GENERALIST VS. SPECIALIST**
+
+**PLOT NCE/CE STRENGTH AS A FUNCTION OF TEMPERATURE?**
