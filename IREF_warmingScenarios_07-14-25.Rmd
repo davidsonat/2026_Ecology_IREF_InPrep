@@ -123,8 +123,10 @@ iref_warming_cool_optim.df <- iref_warming_cool.df %>%
 
 # Plot it
 ggplot( data = iref_warming_cool.df, aes( x = temp_C ) ) +
-  geom_line( aes(y = growthcurve), colour = "blue") +
-  geom_line( aes(y = mortcurve), colour = "red") +
+  geom_line( aes(y = growthcurve, colour = "Growth")) +
+  geom_line( aes(y = mortcurve, color = "Mortality")) +
+  geom_line( aes( y = fitness, color = "Fitness")) +
+  scale_colour_manual(name = "Curve", values = c("green", "blue", "red")) +
 theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Temperature (°C)") +
@@ -171,8 +173,10 @@ iref_warming_hot_optim.df <- iref_warming_hot.df %>%
 
 # Plot it
 ggplot( data = iref_warming_hot.df, aes( x = temp_C ) ) +
-  geom_line( aes(y = growthcurve), colour = "blue") +
-  geom_line( aes(y = mortcurve), colour = "red") +
+  geom_line( aes(y = growthcurve, colour = "Growth")) +
+  geom_line( aes(y = mortcurve, color = "Mortality")) +
+  geom_line( aes( y = fitness, color = "Fitness")) +
+  scale_colour_manual(name = "Curve", values = c("green", "blue", "red")) +
 theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Temperature (°C)") +
@@ -225,8 +229,10 @@ iref_warming_hot2_optim.df <- iref_warming_hot2.df %>%
 
 # Plot it
 ggplot( data = iref_warming_hot2.df, aes( x = temp_C ) ) +
-  geom_line( aes(y = growthcurve), colour = "blue") +
-  geom_line( aes(y = mortcurve), colour = "red") +
+  geom_line( aes(y = growthcurve, colour = "Growth")) +
+  geom_line( aes(y = mortcurve, color = "Mortality")) +
+  geom_line( aes( y = fitness, color = "Fitness")) +
+  scale_colour_manual(name = "Curve", values = c("green", "blue", "red")) +
 theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Temperature (°C)") +
@@ -298,8 +304,10 @@ iref_warming_inverted_optim.df <- iref_warming_inverted.df %>%
 
 # Plot it
 ggplot( data = iref_warming_inverted.df, aes( x = temp_C ) ) +
-  geom_line( aes(y = growthcurve), colour = "blue") +
-  geom_line( aes(y = mortcurve), colour = "red") +
+  geom_line( aes(y = growthcurve, colour = "Growth")) +
+  geom_line( aes(y = mortcurve, color = "Mortality")) +
+  geom_line( aes( y = fitness, color = "Fitness")) +
+  scale_colour_manual(name = "Curve", values = c("green", "blue", "red")) +
 theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Temperature (°C)") +

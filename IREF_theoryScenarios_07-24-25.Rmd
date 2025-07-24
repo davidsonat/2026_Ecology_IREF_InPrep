@@ -1,0 +1,666 @@
+---
+title: "IREF - NSF Grant Scenarios"
+author: "Andy Davidson"
+date: "2025-01-21"
+output: pdf_document
+---
+
+```{r, include = FALSE}
+library(ggplot2)
+library(cowplot)
+library(ggbrace)
+library(knitr)
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+# Prey Displacement Rate
+
+## Part 1: Predator Encounter Rate
+
+For part I, the encounter rate equation is:
+
+$$ Z = 2rN*sqrt(v^2 + s^2)$$
+
+where $s$ is prey speed (i.e., displacement rate), $v$ is predator speed, $N$ is predator density, and $r$ is the radius within which the predator can perceive prey.
+
+Scott simulates this equation for varying levels of $s$, and four constant levels of $v$ (0, 0.5, 1, and 2). Predator density and detection radius are kept constant such that $2rN = 1$.
+
+$v = 0$ would simply mean a sit-and-wait predator.
+
+
+## Part 2: Cost vs. Gain for Displacement Rate
+
+Scott mentions incorporating a Type II functional response, such that higher body velocity has diminishing returns due to time spent handling food.
+
+$$ f(R)= \frac{sR}{1 + shR}$$
+
+where $s$ is prey displacement rate, $h$ is handling time, and $R$ is resource density.
+
+
+Scott describes the fitness curve (without predation, so the growth curve) using the equation from Part 2, and predation using the equation from Part 1.
+
+```{r}
+# Generating the baseline curves
+trait.vec <- seq(0, 1, by = 0.01)
+speed.vec <- 1 - trait.vec
+
+
+# These formulas are simplified by setting some of the values as constants
+# r is always assumed to be 1, while k, s, and v are manipulated values
+pred.curve <- function(k, v, s){
+  k*sqrt(v^2 + s^2)
+}
+
+# R is always assumed to be 1, while s and h are manipulated values
+growth.curve <- function(s, R, h){
+  (R * s)/(1 + s*R*h)
+}
+
+
+# Build growth curves, for h = 0, 0.5, 1, 2
+R_val <- 1
+
+growthcurve.df <- as.data.frame(mat.or.vec(length(speed.vec), 5))
+colnames(growthcurve.df) <- c("s", "h_0", "h_0.5", "h_1", "h_2")
+growthcurve.df$s <- trait.vec
+growthcurve.df$h_0 <- growth.curve(s = growthcurve.df$s, R = R_val, h = 0)
+growthcurve.df$h_0.5 <- growth.curve(s = growthcurve.df$s, R = R_val, h = 0.5)
+growthcurve.df$h_1 <- growth.curve(s = growthcurve.df$s, R = R_val, h = 1)
+growthcurve.df$h_2 <- growth.curve(s = growthcurve.df$s, R = R_val, h = 2)
+
+
+# Build cost curves, for v = 0, 0.5, 1, 2
+k_val <- 1
+
+mortcurve.df <- as.data.frame(mat.or.vec(length(speed.vec), 5))
+colnames(mortcurve.df) <- c("s", "v_0", "v_0.5", "v_1", "v_2")
+mortcurve.df$s <- trait.vec
+mortcurve.df$v_0 <- pred.curve(k = k_val, v = 0, s = mortcurve.df$s)
+mortcurve.df$v_0.5 <- pred.curve(k = k_val, v = 0.5, s = mortcurve.df$s)
+mortcurve.df$v_1 <- pred.curve(k = k_val, v = 1, s = mortcurve.df$s)
+mortcurve.df$v_2 <- pred.curve(k = k_val, v = 2, s = mortcurve.df$s)
+```
+
+```{r}
+# Combine the two to generate IREF figures
+
+# This is the baseline scenario
+baseline.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
+colnames(baseline.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+baseline.df$trait <- trait.vec
+baseline.df$speed <- speed.vec
+h_val <- 8
+R_val <- 1
+cost_constant_val <- 9
+v_val <- 0.2
+k_val <- 0.45
+pred_constant_val <- 0.98058
+
+baseline.df$growth_curve <- cost_constant_val * growth.curve( s = baseline.df$speed, R = R_val, h = h_val ) # Growth curve
+baseline.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = baseline.df$speed ) # Mortality curve
+baseline.df$fitness <- baseline.df$growth_curve - baseline.df$mort_curve # fitness
+baseline.df$NCE_CE <- (1 - baseline.df$growth_curve)/baseline.df$mort_curve # NCE/CE
+
+baseline_optim <- baseline.df$trait[which(baseline.df$fitness == max(baseline.df$fitness))]
+baseline_optim_fitness <- baseline.df$fitness[which(baseline.df$fitness == max(baseline.df$fitness))]
+baseline_optim_CE <- baseline.df$mort_curve[which(baseline.df$fitness == max(baseline.df$fitness))]
+baseline_optim_NCE <- 1 - baseline_optim_CE - baseline_optim_fitness
+
+
+
+# Grant figures *appear* to be these params for predator density
+# Predator density (k_val) is doubled
+preddens.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
+colnames(preddens.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+preddens.df$trait <- trait.vec
+preddens.df$speed <- speed.vec
+h_val <- 8
+R_val <- 1
+cost_constant_val <- 9
+v_val <- 0.2 
+k_val <- 0.9 
+pred_constant_val <- 0.98058
+
+preddens.df$growth_curve <- cost_constant_val * growth.curve( s = preddens.df$speed, R = R_val, h = h_val ) # Growth curve
+preddens.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = preddens.df$speed ) # Mortality curve
+preddens.df$fitness <- preddens.df$growth_curve - preddens.df$mort_curve # fitness
+preddens.df$NCE_CE <- (1 - preddens.df$growth_curve)/preddens.df$mort_curve # NCE/CE
+
+preddens_optim <- preddens.df$trait[which(preddens.df$fitness == max(preddens.df$fitness))]
+preddens_optim_fitness <- preddens.df$fitness[which(preddens.df$fitness == max(preddens.df$fitness))]
+preddens_optim_CE <- preddens.df$mort_curve[which(preddens.df$fitness == max(preddens.df$fitness))]
+preddens_optim_NCE <- 1 - preddens_optim_CE - preddens_optim_fitness
+# Maximum mortality is at 0.8999994
+
+
+# These *appear* to be the params for foraging mode
+# v is five times higher, but k is also (more than) doubled? why?
+predmode.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
+colnames(predmode.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+predmode.df$trait <- trait.vec
+predmode.df$speed <- speed.vec
+h_val <- 8
+R_val <- 1
+cost_constant_val <- 9
+v_val <- 1 # this value changes between the baseline and this one, not sure why
+k_val <- 1 # This changes from 0.45, which I think is where the change in predator density is coming from
+pred_constant_val <- 0.7071068 * 0.8999994 # this changes to anchor the mortality curve in the same spot
+
+
+predmode.df$growth_curve <- cost_constant_val * growth.curve( s = predmode.df$speed, R = R_val, h = h_val ) # Growth curve
+predmode.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = predmode.df$speed ) # Mortality curve
+predmode.df$fitness <- predmode.df$growth_curve - predmode.df$mort_curve # fitness
+predmode.df$NCE_CE <- (1 - predmode.df$growth_curve)/predmode.df$mort_curve # NCE/CE
+
+predmode_optim <- predmode.df$trait[which(predmode.df$fitness == max(predmode.df$fitness))]
+predmode_optim_fitness <- predmode.df$fitness[which(predmode.df$fitness == max(predmode.df$fitness))]
+predmode_optim_CE <- predmode.df$mort_curve[which(predmode.df$fitness == max(predmode.df$fitness))]
+predmode_optim_NCE <- 1 - predmode_optim_CE - predmode_optim_fitness
+
+
+# And these *appear* to be the params for resource intake rate
+# h is reduced to 1/8 of its original value
+# k remains double the baseline, not sure why
+prey_h.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
+colnames(prey_h.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+prey_h.df$trait <- trait.vec
+prey_h.df$speed <- speed.vec
+h_val <- 1
+R_val <- 1
+cost_constant_val <- 2
+v_val <- 0.2 
+k_val <- 0.9 
+pred_constant_val <- 0.98058 
+
+prey_h.df$growth_curve <- cost_constant_val * growth.curve( s = prey_h.df$speed, R = R_val, h = h_val ) # Growth curve
+prey_h.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = prey_h.df$speed ) # Mortality curve
+prey_h.df$fitness <- prey_h.df$growth_curve - prey_h.df$mort_curve # fitness
+prey_h.df$NCE_CE <- (1 - prey_h.df$growth_curve)/prey_h.df$mort_curve # NCE/CE
+
+prey_h_optim <- prey_h.df$trait[which(prey_h.df$fitness == max(prey_h.df$fitness))]
+prey_h_optim_fitness <- prey_h.df$fitness[which(prey_h.df$fitness == max(prey_h.df$fitness))]
+prey_h_optim_CE <- prey_h.df$mort_curve[which(prey_h.df$fitness == max(prey_h.df$fitness))]
+prey_h_optim_NCE <- 1 - prey_h_optim_CE - prey_h_optim_fitness
+```
+
+```{r}
+# Fig. 1
+fig1_a.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
+  geom_smooth( aes( y = growth_curve ), se = FALSE, color = "blue" ) +
+  geom_smooth( aes( y = mort_curve ), se = FALSE, color = "red", linetype = "dashed" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  annotate( "text", x = 0.25, y = 0.85, label = "Growth", size = 8/.pt  ) +
+  annotate( "text", x = 0.5, y = 0.35, label = "Mortality", size = 8/.pt  ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
+
+fig1_b.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
+  geom_smooth( aes( y = growth_curve, color = "Growth"  ), se = FALSE) +
+  geom_smooth( aes( y = mort_curve, color = "Mortality"), se = FALSE, linetype = "dashed" ) +
+  geom_smooth( aes( y = fitness, color = "Fitness"), se = FALSE ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  annotate( "text", x = 0.3, y = 0.7, label = "Fitness", size = 8/.pt  ) +
+  annotate( "text", x = 0.35, y = 0.1, label = "Optimal Trait", size = 8/.pt  ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("green", "blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
+         axis.title.y = element_blank(), legend.position = "bottom" )
+
+fig1_c.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
+  geom_smooth( aes( y = growth_curve ), color = "blue", se = FALSE ) +
+  geom_smooth( aes( y = mort_curve ), color = "red", se = FALSE, linetype = "dashed" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  annotate(geom = "rect", xmin = baseline_optim - 0.025, xmax = baseline_optim + 0.025, ymin = 1 - baseline_optim_NCE, ymax = 0.998, color = "gray2", fill = "lightblue", alpha = 0.5) +
+  annotate( "text", x = baseline_optim + 0.05, y = 1 - baseline_optim_NCE/2, label = "NCE = 0.12", hjust = "left", size = 7/.pt  ) +
+  annotate(geom = "rect", xmin = baseline_optim - 0.025, xmax = baseline_optim + 0.025, ymin = baseline_optim_CE, ymax = baseline_optim_CE + baseline_optim_fitness, color = "gray2", fill = "lightgreen", alpha = 0.5) +
+  annotate( "text", x = baseline_optim + 0.05, y = baseline_optim_CE + baseline_optim_fitness/2, label = "0.66", hjust = "left", size = 7/.pt  ) +
+  annotate(geom = "rect", xmin = baseline_optim - 0.025, xmax = baseline_optim + 0.025, ymin = 0.001, ymax = baseline_optim_CE, color = "gray2", fill = "red", alpha = 0.5) +
+  annotate( "text", x = baseline_optim + 0.05, y = baseline_optim_CE/2, label = "CE = 0.22", hjust = "left", size = 7/.pt  ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
+         axis.title.y = element_blank() )
+
+
+
+get_legend_35 <- function(plot) {
+  # return all legend candidates
+  legends <- get_plot_component(plot, "guide-box", return_all = TRUE)
+  # find non-zero legends
+  nonzero <- vapply(legends, \(x) !inherits(x, "zeroGrob"), TRUE)
+  idx <- which(nonzero)
+  # return first non-zero legend if exists, and otherwise first element (which will be a zeroGrob) 
+  if (length(idx) > 0) {
+    return(legends[[idx[1]]])
+  } else {
+    return(legends[[1]])
+  }
+}
+
+fig1.legend <- get_legend_35(fig1_b.plot)
+fig1_b.plot <- fig1_b.plot + theme(legend.position = "none")
+
+fig1.plot <- plot_grid( fig1_a.plot, fig1_b.plot, fig1_c.plot, ncol = 3, labels = "auto", label_y = 0.75, align = c("hv") )
+fig1.plot <- plot_grid( fig1.plot, fig1.legend, rel_heights = c(1, 0.1), ncol = 1)
+
+# ggsave("fig1.png", plot = fig1.plot, dpi = 300)
+
+```
+
+```{r}
+# Fig. 2 - predator density
+preddens.df <- cbind(preddens.df, baseline.df$mort_curve)
+colnames(preddens.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mort_baseline")
+
+preddens_1.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve ), color = "blue" ) +
+  geom_line( aes( y = mort_curve ), color = "red", linetype = "solid" ) +
+  geom_line( aes( y = mort_baseline ), color = "red", linetype = "dashed" ) +
+  geom_ribbon( aes( ymin = mort_curve, ymax = mort_baseline ), fill = "red", alpha = 0.25 )  +
+  geom_segment(aes( x = 0.5, y = 0.3, xend = 0.5, yend = 0.45), arrow = arrow(length = unit(0.5, "cm") ), color = "red", size = 1 ) +
+  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
+         axis.title.x = element_blank(),
+         axis.text.x = element_blank() )
+
+preddens_2.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, colour = "Growth" ), ) +
+  geom_line( aes( y = mort_curve, colour = "Mortality" ), linetype = "solid" ) +
+  annotate( "rect", xmin = baseline_optim, xmax = preddens_optim, ymin = 0, ymax = 1, fill = "green", alpha = 0.25 ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  geom_vline( xintercept = baseline_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  geom_segment(aes( x = baseline_optim + 0.01, y = 0.25, xend = preddens_optim - 0.01, yend = 0.25), arrow = arrow(length = unit(0.5, "cm") ), color = "green", size = 1 ) +
+  geom_vline( xintercept = preddens_optim,  size = 0.5, linetype = "solid", colour = "green" ) +
+  annotate( "text", x = preddens_optim + 0.15, y = 0.95, label = "NCE = 0.20", size = 7/.pt  ) +
+  annotate( "text", x = preddens_optim + 0.15, y = 0.45, label = "0.48", size = 7/.pt  ) +
+  annotate( "text", x = preddens_optim + 0.15, y = 0.15, label = "CE = 0.32", size = 7/.pt  ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
+  theme( legend.position = "bottom" )
+
+preddens.legend <- get_legend_35(preddens_2.plot)
+preddens_2.plot <- preddens_2.plot + theme( legend.position = "none" )
+
+preddens.fig <- plot_grid( preddens_1.plot, preddens_2.plot, ncol = 1, labels = "auto", hjust = -12.5, align = c("hv") )
+preddens.fig <- plot_grid( preddens.fig, preddens.legend, ncol = 1, rel_heights = c(1, 0.1) )
+
+# ggsave("fig2.png", plot = preddens.fig, dpi = 300)
+```
+
+```{r}
+# Fig. 4 - predator hunting mode
+predmode.df <- cbind(predmode.df, preddens.df$mort_curve)
+colnames(predmode.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mort_baseline")
+
+predmode_1.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve ), color = "blue" ) +
+  geom_line( aes( y = mort_curve ), color = "red", linetype = "solid" ) +
+  geom_line( aes( y = mort_baseline ), color = "red", linetype = "dashed" ) +
+  geom_ribbon( aes( ymin = mort_curve, ymax = mort_baseline ), fill = "red", alpha = 0.25 )  +
+  geom_vline( xintercept = preddens_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  geom_segment(aes( x = 0.5, y = 0.5, xend = 0.5, yend = 0.7), arrow = arrow(length = unit(0.5, "cm") ), color = "red", size = 1 ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
+         axis.title.x = element_blank(),
+         axis.text.x = element_blank() )
+
+predmode_2.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, colour = "Growth" ), ) +
+  geom_line( aes( y = mort_curve, colour = "Mortality" ), linetype = "solid" ) +
+  annotate( "rect", xmin = preddens_optim, xmax = predmode_optim, ymin = 0, ymax = 1, fill = "green", alpha = 0.25 ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  geom_vline( xintercept = preddens_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  geom_vline( xintercept = predmode_optim,  size = 0.5, linetype = "solid", colour = "green" ) +
+  annotate( "text", x = predmode_optim, y = 0.975, label = "NCE = 0.09", size = 7/.pt  ) +
+  annotate( "text", x = predmode_optim - 0.125, y = 0.85, label = "0.11", size = 7/.pt  ) +
+  annotate( "text", x = predmode_optim - 0.125, y = 0.5, label = "CE = 0.80", size = 7/.pt  ) +
+  geom_segment(aes( x = preddens_optim - 0.01, y = 0.25, xend = predmode_optim + 0.01, yend = 0.25), arrow = arrow(length = unit(0.5, "cm") ), color = "green", size = 1 ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
+  theme( legend.position = "bottom" )
+
+predmode.legend <- get_legend_35(predmode_2.plot)
+predmode_2.plot <- predmode_2.plot + theme( legend.position = "none" )
+
+predmode.fig <- plot_grid( predmode_1.plot, predmode_2.plot, ncol = 1, labels = "auto", hjust = -12.5, align = c("hv") )
+predmode.fig <- plot_grid( predmode.fig, predmode.legend, ncol = 1, rel_heights = c(1, 0.1) )
+
+# ggsave("fig4.png", plot = predmode.fig, dpi = 300)
+```
+
+```{r}
+prey_h.df <- cbind(prey_h.df, baseline.df$growth_curve)
+colnames(prey_h.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE", "growth_baseline")
+
+# Fig. 4 - Prey handling time
+prey_h_1.plot <- ggplot( data = prey_h.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve ), color = "blue" ) +
+  geom_line( aes( y = mort_curve ), color = "red", linetype = "solid" ) +
+  geom_line( aes( y = growth_baseline ), color = "blue", linetype = "dashed" ) +
+  geom_vline( xintercept = preddens_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  geom_ribbon( aes( ymin = growth_baseline, ymax = growth_curve ), fill = "blue", alpha = 0.25 )  +
+  geom_segment(aes( x = 0.5, y = 0.85, xend = 0.5, yend = 0.7), arrow = arrow(length = unit(0.5, "cm") ), color = "blue", size = 1 ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
+         axis.title.x = element_blank(),
+         axis.text.x = element_blank() )
+
+prey_h_2.plot <- ggplot( data = prey_h.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, colour = "Growth" ), ) +
+  geom_line( aes( y = mort_curve, colour = "Mortality" ), linetype = "solid" ) +
+  annotate( "rect", xmin = preddens_optim, xmax = prey_h_optim, ymin = 0, ymax = 1, fill = "green", alpha = 0.25 ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  geom_vline( xintercept = preddens_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  geom_vline( xintercept = prey_h_optim,  size = 0.5, linetype = "solid", colour = "green" ) +
+  geom_segment(aes( x = preddens_optim - 0.05, y = 0.25, xend = prey_h_optim + 0.01, yend = 0.25), arrow = arrow(length = unit(0.5, "cm") ), color = "green", size = 1 ) +
+  annotate( "text", x = prey_h_optim - 0.15, y = 0.925, label = "NCE = 0.29", size = 7/.pt  ) +
+  annotate( "text", x = prey_h_optim - 0.15, y = 0.75, label = "0.19", size = 7/.pt  ) +
+  annotate( "text", x = prey_h_optim - 0.15, y = 0.35, label = "CE = 0.52", size = 7/.pt  ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
+  theme( legend.position = "bottom" )
+
+prey_h.legend <- get_legend_35(prey_h_2.plot)
+prey_h_2.plot <- prey_h_2.plot + theme( legend.position = "none" )
+
+prey_h.fig <- plot_grid( prey_h_1.plot, prey_h_2.plot, ncol = 1, labels = "auto", hjust = -12.5, align = c("hv") )
+prey_h.fig <- plot_grid( prey_h.fig, prey_h.legend, ncol = 1, rel_heights = c(1, 0.1) )
+
+ggsave("fig5.png", plot = prey_h.fig, dpi = 300)
+```
+
+## A new trait response for handling time:
+
+```{r}
+## Derive the trait curves
+refuge.df <- as.data.frame( mat.or.vec( 25, 5 ) ) 
+colnames(refuge.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+refuge.df$proptime <- seq(0, 1, by = 1/24) 
+
+cost_constant_val <- 9 # a constant Scott applied to the growth curve in the calcs to make the numbers cleaner
+
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+growth_A_val <- growth.curve( s = 1, R = 1, h = 8 ) * cost_constant_val # Growth outside refuge during an hour
+growth_B_val <- growth.curve( s = 1, R = 0.1, h = 8 ) * cost_constant_val # Growth inside refuge during an hour
+
+# Growth curve
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+refuge.df$growth_curve <- (1 - refuge.df$proptime) * growth_A_val + (refuge.df$proptime) * growth_B_val
+
+# Mortality curve
+mort_val_A <- 0.25 # Mortality outside the refuge during an hour
+mort_val_B <- 0.01 # Mortality inside the refuge during an hour
+
+# Weighted mean of risk during time spent outside refuge + risk during time spent inside refuge
+refuge.df$mort_curve <- exp( ( 1 - refuge.df$proptime ) * log( mort_val_A ) + ( refuge.df$proptime ) * log( mort_val_B ) )
+
+# Calculate fitness and relative strength of NCEs and CEs
+refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$mort_curve
+refuge.df$NCE_CE <- refuge.df$growth_curve / refuge.df$mort_curve
+
+# Some other important metrics
+refuge_optim <- round(refuge.df$proptime[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The level of refuge use (along x-axis) that fitness is optimized at
+refuge_optim_fitness <- round(refuge.df$fitness[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The fitness value at the optimum
+refuge_optim_CE <- round(refuge.df$mort_curve[which(refuge.df$fitness == max(refuge.df$fitness))], digits = 2) # The strength of the CE at the optimum
+refuge_optim_NCE <- round(1 - refuge_optim_CE - refuge_optim_fitness, digits = 2) # The strength of the NCE at the optimum
+
+ggplot( data = refuge.df, aes( x = proptime ) ) +
+  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
+  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) +   
+  geom_vline( xintercept = refuge_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  annotate( "text", x = refuge_optim + 0.15, y = 0.55, label = paste0("p = ", refuge_optim ), size = 7/.pt  ) +
+  annotate( "text", x = 0.5, y = 0.95, label = "NCE = 0.21, CE = 0.07, Fitness = 0.72", size = 7/.pt  ) +
+  ylab("Growth and Mortality") +
+  xlab("Proportion of Time Spent in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
+
+
+
+### Second round, lower h to 1
+## Derive the trait curves
+refuge2.df <- as.data.frame( mat.or.vec( 25, 5 ) ) 
+colnames(refuge2.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+refuge2.df$proptime <- seq(0, 1, by = 1/24) 
+
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+growth_A_val <- growth.curve( s = 1, R = 1, h = 1 ) * cost_constant_val # Growth outside refuge during an hour
+growth_B_val <- growth.curve( s = 1, R = 0.1, h = 1 ) * cost_constant_val # Growth inside refuge during an hour
+
+# Growth curve
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+refuge2.df$growth_curve <- (1 - refuge.df$proptime) * growth_A_val + (refuge.df$proptime) * growth_B_val
+refuge2.df$growth_curve <- refuge2.df$growth_curve/4.5 # Anchor at 1
+
+
+# Mortality curve
+mort_val_A <- 0.25 # Mortality outside the refuge during an hour
+mort_val_B <- 0.01 # Mortality inside the refuge during an hour
+
+# Weighted mean of risk during time spent outside refuge + risk during time spent inside refuge
+refuge2.df$mort_curve <- exp( ( 1 - refuge2.df$proptime ) * log( mort_val_A ) + ( refuge2.df$proptime ) * log( mort_val_B ) )
+
+# Calculate fitness and relative strength of NCEs and CEs
+refuge2.df$fitness <- 1 - ( 1 - refuge2.df$growth_curve ) - refuge2.df$mort_curve
+refuge2.df$NCE_CE <- refuge2.df$growth_curve / refuge2.df$mort_curve
+
+# Some other important metrics
+refuge_optim2 <- round(refuge2.df$proptime[which(refuge2.df$fitness == max(refuge2.df$fitness))], digits = 2) # The level of refuge use (along x-axis) that fitness is optimized at
+refuge_optim_fitness2 <- round(refuge2.df$fitness[which(refuge2.df$fitness == max(refuge2.df$fitness))], digits = 2) # The fitness value at the optimum
+refuge_optim_CE2 <- round(refuge2.df$mort_curve[which(refuge2.df$fitness == max(refuge2.df$fitness))], digits = 2) # The strength of the CE at the optimum
+refuge_optim_NCE2 <- round(1 - refuge_optim_CE - refuge_optim_fitness, digits = 2) # The strength of the NCE at the optimum
+
+ggplot( data = refuge2.df, aes( x = proptime ) ) +
+  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
+  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) +   
+  geom_vline( xintercept = refuge_optim2,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  ylab("Growth and Mortality") +
+  xlab("Proportion of Time Spent in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
+```
+
+## Warming vs. prop time
+
+```{r}
+## Derive the trait curves
+therm_refuge.df <- as.data.frame( mat.or.vec( 25, 5 ) ) 
+colnames(therm_refuge.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+therm_refuge.df$proptime <- seq(0, 1, by = 1/24) 
+
+cost_constant_val <- 9 # a constant Scott applied to the growth curve in the calcs to make the numbers cleaner
+
+## The growth-trait curve
+# a.growth determines the width of the performance curve and should be negative, so that the curve is concave down
+# h.growth determines the temperature at which prey growth peaks
+# c.growth is a scaling constant
+# temp_C is temperature in degrees Celsius
+growth.curve_warming <- function( c_g, a_g, h_g, temp_C ){
+  c_g * exp( a_g * ( ( temp_C - h_g )^2 ) + 1)
+}
+
+# Set a.growth to an arbitrary value that makes the curve broader than the predator's distribution; smaller values yield broader curves
+a_g.val <- -0.05
+
+# Set h.growth to the same point that the predator's density peaks
+h_g.val <- 20
+
+# c.growth needs to be 1/e for this parameterization to peak at 1
+c_g.val <- 1/exp(1)
+
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+growth_A_val <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 20) # Growth outside refuge during an hour
+growth_B_val <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 22.5) # Growth inside refuge during an hour, lower due to temperature
+
+# Growth curve
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+therm_refuge.df$growth_curve <- (1 - therm_refuge.df$proptime) * growth_A_val + (therm_refuge.df$proptime) * growth_B_val
+
+# Mortality curve
+mort_val_A <- 0.25 # Mortality outside the refuge during an hour
+mort_val_B <- 0.01 # Mortality inside the refuge during an hour
+
+# Weighted mean of risk during time spent outside refuge + risk during time spent inside refuge
+therm_refuge.df$mort_curve <- exp( ( 1 - therm_refuge.df$proptime ) * log( mort_val_A ) + ( therm_refuge.df$proptime ) * log( mort_val_B ) )
+
+# Calculate fitness and relative strength of NCEs and CEs
+therm_refuge.df$fitness <- 1 - ( 1 - therm_refuge.df$growth_curve ) - therm_refuge.df$mort_curve
+therm_refuge.df$NCE_CE <- therm_refuge.df$growth_curve / therm_refuge.df$mort_curve
+
+# Some other important metrics
+therm_refuge_optim <- round(therm_refuge.df$proptime[which(therm_refuge.df$fitness == max(therm_refuge.df$fitness))], digits = 2) # The level of refuge use (along x-axis) that fitness is optimized at
+therm_refuge_optim_fitness <- round(therm_refuge.df$fitness[which(therm_refuge.df$fitness == max(therm_refuge.df$fitness))], digits = 2) # The fitness value at the optimum
+therm_refuge_optim_CE <- round(therm_refuge.df$mort_curve[which(therm_refuge.df$fitness == max(therm_refuge.df$fitness))], digits = 2) # The strength of the CE at the optimum
+therm_refuge_optim_NCE <- round(1 - refuge_optim_CE - refuge_optim_fitness, digits = 2) # The strength of the NCE at the optimum
+
+ggplot( data = therm_refuge.df, aes( x = proptime ) ) +
+  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
+  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) +   
+  geom_vline( xintercept = therm_refuge_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  ylab("Growth and Mortality") +
+  xlab("Proportion of Time Spent in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
+
+
+# Vs. warmed scenario
+
+## Derive the trait curves
+therm_refuge2.df <- as.data.frame( mat.or.vec( 25, 5 ) ) 
+colnames(therm_refuge2.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+therm_refuge2.df$proptime <- seq(0, 1, by = 1/24) 
+
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+growth_A_val <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 22.5) # Growth outside refuge during an hour
+growth_B_val <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 25) # Growth inside refuge during an hour, lower due to temperature
+
+# Growth curve
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+therm_refuge2.df$growth_curve <- (1 - therm_refuge2.df$proptime) * growth_A_val + (therm_refuge2.df$proptime) * growth_B_val
+# Normalize to one, or no? Probably no, right? it's all normalized wrt to their optimal temp
+
+# Mortality curve
+mort_val_A <- 0.25 # Mortality outside the refuge during an hour
+mort_val_B <- 0.01 # Mortality inside the refuge during an hour
+
+# Weighted mean of risk during time spent outside refuge + risk during time spent inside refuge
+therm_refuge2.df$mort_curve <- exp( ( 1 - therm_refuge2.df$proptime ) * log( mort_val_A ) + ( therm_refuge2.df$proptime ) * log( mort_val_B ) )
+
+# Calculate fitness and relative strength of NCEs and CEs
+therm_refuge2.df$fitness <- 1 - ( 1 - therm_refuge2.df$growth_curve ) - therm_refuge2.df$mort_curve
+therm_refuge2.df$NCE_CE <- therm_refuge2.df$growth_curve / therm_refuge2.df$mort_curve
+
+# Some other important metrics
+therm_refuge_optim2 <- round(therm_refuge.df$proptime[which(therm_refuge.df$fitness == max(therm_refuge.df$fitness))], digits = 2) # The level of refuge use (along x-axis) that fitness is optimized at
+therm_refuge_optim_fitness2 <- round(therm_refuge.df$fitness[which(therm_refuge.df$fitness == max(therm_refuge.df$fitness))], digits = 2) # The fitness value at the optimum
+therm_refuge_optim_CE2 <- round(therm_refuge.df$mort_curve[which(therm_refuge.df$fitness == max(therm_refuge.df$fitness))], digits = 2) # The strength of the CE at the optimum
+therm_refuge_optim_NCE2 <- round(1 - refuge_optim_CE - refuge_optim_fitness, digits = 2) # The strength of the NCE at the optimum
+
+ggplot( data = therm_refuge2.df, aes( x = proptime ) ) +
+  geom_smooth( aes( y = growth_curve, colour = "Growth" ), se = FALSE ) +
+  geom_smooth( aes( y = mort_curve, colour = "Mortality" ), se = FALSE, linetype = "dashed" ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) +   
+  geom_vline( xintercept = therm_refuge_optim2,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  ylab("Growth and Mortality") +
+  xlab("Proportion of Time Spent in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
+```
+
+Same optimal RITR, stronger NCE.
+
+# Predator Density Effects
+
+For this last section, I'd like to make a figure illustrating the very simple, intuitive point that below a certain predator density, the optimal strategy is  actually to not respond at all.
+
+```{r, echo = FALSE}
+
+threshold.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
+colnames(threshold.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+threshold.df$trait <- trait.vec
+threshold.df$speed <- speed.vec
+h_val <- 8
+R_val <- 1
+cost_constant_val <- 9
+v_val <- 1 
+k_val <- 0.15 
+pred_constant_val <- 0.98058
+
+# set p to approx 0.2 or lower
+
+threshold.df$growth_curve <- cost_constant_val * growth.curve( s = threshold.df$speed, R = R_val, h = h_val ) # Growth curve
+threshold.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = threshold.df$speed ) # Mortality curve
+threshold.df$fitness <- threshold.df$growth_curve - threshold.df$mort_curve # fitness
+threshold.df$NCE_CE <- (1 - threshold.df$growth_curve)/threshold.df$mort_curve # NCE/CE
+
+thresh_optim <- threshold.df$trait[which(threshold.df$fitness == max(threshold.df$fitness))]
+thresh_optim_fitness <- threshold.df$fitness[which(threshold.df$fitness == max(threshold.df$fitness))]
+thresh_optim_CE <- threshold.df$mort_curve[which(threshold.df$fitness == max(threshold.df$fitness))]
+thresh_optim_NCE <- 1 - thresh_optim_CE - thresh_optim_fitness
+
+thresh.plot <- ggplot( data = threshold.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, colour = "Growth" ), ) +
+  geom_line( aes( y = mort_curve, colour = "Mortality" ), linetype = "dashed" ) +
+  geom_line( aes( y = fitness, colour = "Fitness" ) ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Displacement Rate") +
+  geom_vline( xintercept = thresh_optim,  size = 0.5, linetype = "dashed", colour = "green" ) +
+  annotate( "text", x = 0.1, y = 0.95, label = "NCE = 0", size = 7/.pt  ) +
+  annotate( "text", x = 0.1, y = 0.65, label = "0.79", size = 7/.pt  ) +
+  annotate( "text", x = 0.1, y = 0.15, label = "CE = 0.21", size = 7/.pt  ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_colour_manual(name = "Curve", values = c("green", "blue", "red")) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
+  theme( legend.position = "bottom" )
+
+ggsave("fig3.png", plot = thresh.plot, dpi = 300)
+
+```
