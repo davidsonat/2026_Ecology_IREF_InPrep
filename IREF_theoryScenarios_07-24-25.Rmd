@@ -197,7 +197,7 @@ fig1_c.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   annotate(geom = "rect", xmin = baseline_optim - 0.025, xmax = baseline_optim + 0.025, 
            ymin = 0.001, ymax = baseline_optim_CE, 
            color = "gray2", fill = "red", alpha = 0.5) +
-  annotate( "text", x = baseline_optim + 0.05, y = baseline_optim_CE/2, 
+  annotate( "text", x = baseline_optim + 0.05, y = baseline_optim_CE/2 - 0.05, 
             label = "CE = 0.22", hjust = "left", size = 9/.pt  ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
@@ -228,17 +228,17 @@ preddens_1.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
            ymin = 1 - baseline_optim_NCE, ymax = 0.998, 
            color = "gray2", fill = "lightblue", alpha = 0.5) +
   annotate( "text", x = baseline_optim + 0.05, y = 1 - baseline_optim_NCE/2, 
-            label = "NCE = 0.12", hjust = "left", size = 9/.pt  ) +
+            label = "NCE = 0.12", hjust = "left", size = 8/.pt  ) +
   annotate(geom = "rect", xmin = baseline_optim - 0.025, xmax = baseline_optim + 0.025,
            ymin = baseline_optim_CE, ymax = baseline_optim_CE + baseline_optim_fitness, 
            color = "gray2", fill = "lightgreen", alpha = 0.5) +
   annotate( "text", x = baseline_optim + 0.1, y = baseline_optim_CE + baseline_optim_fitness/2, 
-            label = "0.66", hjust = "left", size = 9/.pt  ) +
+            label = "0.66", hjust = "left", size = 8/.pt  ) +
   annotate(geom = "rect", xmin = baseline_optim - 0.025, xmax = baseline_optim + 0.025, 
            ymin = 0.001, ymax = baseline_optim_CE, 
            color = "gray2", fill = "red", alpha = 0.5) +
-  annotate( "text", x = baseline_optim + 0.05, y = baseline_optim_CE/2, 
-            label = "CE = 0.22", hjust = "left", size = 9/.pt  ) +
+  annotate( "text", x = baseline_optim + 0.05, y = baseline_optim_CE/2 - 0.05, 
+            label = "CE = 0.22", hjust = "left", size = 8/.pt  ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
@@ -261,28 +261,69 @@ preddens_2.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
            ymin = 1 - preddens_optim_NCE, ymax = 0.998, 
            color = "gray2", fill = "lightblue", alpha = 0.5) +
   annotate( "text", x = preddens_optim + 0.05, y = 1 - preddens_optim_NCE/2, 
-            label = "NCE = 0.20", hjust = "left", size = 9/.pt  ) +
+            label = "NCE = 0.20", hjust = "left", size = 7/.pt  ) +
   annotate(geom = "rect", xmin = preddens_optim - 0.025, xmax = preddens_optim + 0.025,
            ymin = preddens_optim_CE, ymax = preddens_optim_CE + preddens_optim_fitness, 
            color = "gray2", fill = "lightgreen", alpha = 0.5) +
-  annotate( "text", x = preddens_optim + 0.1, y = preddens_optim_CE + preddens_optim_fitness/2, 
-            label = "0.48", hjust = "left", size = 9/.pt  ) +
+  annotate( "text", x = preddens_optim + 0.1, y = preddens_optim_CE + preddens_optim_fitness/2 - 0.1, 
+            label = "0.48", hjust = "left", size = 7/.pt  ) +
   annotate(geom = "rect", xmin = preddens_optim - 0.025, xmax = preddens_optim + 0.025, 
            ymin = 0.001, ymax = preddens_optim_CE, 
            color = "gray2", fill = "red", alpha = 0.5) +
-  annotate( "text", x = preddens_optim + 0.05, y = preddens_optim_CE/2, 
-            label = "CE = 0.32", hjust = "left", size = 9/.pt  ) +
+  annotate( "text", x = preddens_optim + 0.05, y = preddens_optim_CE/2 - 0.05, 
+            label = "CE = 0.32", hjust = "left", size = 7/.pt  ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_colour_manual(name = "Curve", values = c("blue", "red")) +
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
   theme( legend.position = "bottom" )
 
-preddens.fig <- plot_grid( preddens_1.plot, preddens_2.plot, ncol = 1, labels = "auto", hjust = -12.5, align = c("hv") )
-# Labels in wrong place (too far left), annotations on text too big to read and get cut off
-# Include a plot of relative NCE % w/ increasing density?
 
-# ggsave("fig2.png", plot = preddens.fig, dpi = 300)
+# Calculate change in NCE % of total predator effect, and optimal RITR, with decreasing h:
+k_vec <- seq( 0, 2.5, by = 0.05 )
+preddens_pctNCE.df <- as.data.frame(mat.or.vec( length(k_vec), 3 ) ) 
+colnames(preddens_pctNCE.df) <- c("k", "NCE_TPE", "OptimalRITR")
+
+for (i in 1:length( k_vec ) ){
+preddens_pctNCE.df[i, 1] <- k_vec[i]
+
+pd_growth_curve <- cost_constant_val * growth.curve( s = speed.vec, R = 1, h = 8 ) # Growth curve
+pd_mort_curve <- pred_constant_val * pred.curve( k = k_vec[i], v = 0.2, s = speed.vec ) # Mortality curve
+pd_fitness <- pd_growth_curve - pd_mort_curve # fitness
+pd_NCE_TPE <- (1 - pd_growth_curve)/(pd_mort_curve + (1 - pd_growth_curve))# NCE/TPE
+
+preddens_pctNCE.df[i, 2] <- pd_NCE_TPE[ which.max(pd_fitness) ]
+
+# Some other important metrics
+preddens_pctNCE.df[i, 3] <- speed.vec[ which.max(pd_fitness) ]
+}
+
+# Drop NaN from first row
+preddens_pctNCE.df[1, 2] <- 0
+
+# Plot both:
+preddens_3.plot <- ggplot( data = preddens_pctNCE.df, aes( x = k ) ) +
+  geom_smooth( aes( y = NCE_TPE ), color = "black", se = FALSE ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("% NCE Contribution to TPE") +
+  xlab("Predator Density") +
+  scale_x_continuous(expand = c(0, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), axis.title.x = element_blank(),
+         axis.text.x = element_blank(), aspect.ratio = 1)
+
+preddens_4.plot <- ggplot( data = preddens_pctNCE.df, aes( x = k ) ) +
+  geom_smooth( aes( y = OptimalRITR ), color = "black", se = FALSE ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Optimal Prey Displacement Rate") +
+  xlab("Predator Density") +
+  scale_x_continuous(expand = c(0, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
+
+preddens.fig <- plot_grid( preddens_1.plot, preddens_3.plot, preddens_2.plot, preddens_4.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
+
+ggsave("fig2.png", plot = preddens.fig, dpi = 300)
 ```
 
 ```{r}
@@ -299,17 +340,17 @@ predmode_1.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
            ymin = 1 - preddens_optim_NCE, ymax = 0.998, 
            color = "gray2", fill = "lightblue", alpha = 0.5) +
   annotate( "text", x = preddens_optim + 0.05, y = 1 - preddens_optim_NCE/2, 
-            label = "NCE = 0.20", hjust = "left", size = 9/.pt  ) +
+            label = "NCE = 0.20", hjust = "left", size = 7/.pt  ) +
   annotate(geom = "rect", xmin = preddens_optim - 0.025, xmax = preddens_optim + 0.025,
            ymin = preddens_optim_CE, ymax = preddens_optim_CE + preddens_optim_fitness, 
            color = "gray2", fill = "lightgreen", alpha = 0.5) +
-  annotate( "text", x = preddens_optim + 0.1, y = preddens_optim_CE + preddens_optim_fitness/2, 
-            label = "0.48", hjust = "left", size = 9/.pt  ) +
+  annotate( "text", x = preddens_optim + 0.1, y = preddens_optim_CE + preddens_optim_fitness/2 - 0.05, 
+            label = "0.48", hjust = "left", size = 7/.pt  ) +
   annotate(geom = "rect", xmin = preddens_optim - 0.025, xmax = preddens_optim + 0.025, 
            ymin = 0.001, ymax = preddens_optim_CE, 
            color = "gray2", fill = "red", alpha = 0.5) +
   annotate( "text", x = preddens_optim + 0.05, y = preddens_optim_CE/2, 
-            label = "CE = 0.32", hjust = "left", size = 9/.pt  ) +
+            label = "CE = 0.32", hjust = "left", size = 7/.pt  ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
@@ -332,27 +373,67 @@ predmode_2.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
            ymin = 1 - predmode_optim_NCE, ymax = 0.998, 
            color = "gray2", fill = "lightblue", alpha = 0.5) +
   annotate( "text", x = predmode_optim + 0.05, y = 1 - predmode_optim_NCE/2, 
-            label = "NCE = 0.08", hjust = "left", size = 9/.pt  ) +
+            label = "NCE = 0.08", hjust = "left", size = 7/.pt  ) +
   annotate(geom = "rect", xmin = predmode_optim - 0.025, xmax = predmode_optim + 0.025,
            ymin = predmode_optim_CE, ymax = predmode_optim_CE + predmode_optim_fitness, 
            color = "gray2", fill = "lightgreen", alpha = 0.5) +
-  annotate( "text", x = predmode_optim + 0.1, y = predmode_optim_CE + predmode_optim_fitness/2, 
-            label = "0.19", hjust = "left", size = 9/.pt  ) +
+  annotate( "text", x = predmode_optim + 0.1, y = predmode_optim_CE + predmode_optim_fitness/2 - 0.05, 
+            label = "0.19", hjust = "left", size = 7/.pt  ) +
   annotate(geom = "rect", xmin = predmode_optim - 0.025, xmax = predmode_optim + 0.025, 
            ymin = 0.001, ymax = predmode_optim_CE, 
            color = "gray2", fill = "red", alpha = 0.5) +
   annotate( "text", x = predmode_optim + 0.05, y = predmode_optim_CE/2, 
-            label = "CE = 0.73", hjust = "left", size = 9/.pt  ) +
+            label = "CE = 0.73", hjust = "left", size = 7/.pt  ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_colour_manual(name = "Curve", values = c("blue", "red")) +
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
   theme( legend.position = "bottom" )
 
-predmode.fig <- plot_grid( predmode_1.plot, predmode_2.plot, ncol = 1, labels = "auto", hjust = -12.5, align = c("hv") )
 
-# ggsave("fig4.png", plot = predmode.fig, dpi = 300)
-# Some numbers cut-off, not sold on panel a yet
+# Calculate change in NCE % of total predator effect, and optimal RITR, with decreasing h:
+v_vec <- seq( 0, 2.5, by = 0.05 )
+predmode_pctNCE.df <- as.data.frame(mat.or.vec( length(v_vec), 3 ) )
+pred_constant_val <- 0.7071068 * 0.8999994 # this changes to anchor the mortality curve in the same spot
+colnames(predmode_pctNCE.df) <- c("v", "NCE_TPE", "OptimalRITR")
+
+for (i in 1:length( v_vec ) ){
+predmode_pctNCE.df[i, 1] <- v_vec[i]
+
+pm_growth_curve <- cost_constant_val * growth.curve( s = speed.vec, R = 1, h = 8 ) # Growth curve
+pm_mort_curve <- pred_constant_val * pred.curve( k = 1, v = v_vec[i], s = speed.vec ) # Mortality curve
+pm_fitness <- pm_growth_curve - pm_mort_curve # fitness
+pm_NCE_TPE <- (1 - pm_growth_curve)/(pm_mort_curve + (1 - pm_growth_curve))# NCE/TPE
+
+predmode_pctNCE.df[i, 2] <- pm_NCE_TPE[ which.max(pm_fitness) ]
+
+# Some other important metrics
+predmode_pctNCE.df[i, 3] <- speed.vec[ which.max(pm_fitness) ]
+}
+
+# Plot both:
+predmode_3.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
+  geom_smooth( aes( y = NCE_TPE ), color = "black", se = FALSE ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("% NCE Contribution to TPE") +
+  xlab("Predator Velocity") +
+  scale_x_continuous(expand = c(0, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), axis.title.x = element_blank(),
+         axis.text.x = element_blank(), aspect.ratio = 1)
+
+predmode_4.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
+  geom_smooth( aes( y = OptimalRITR ), color = "black", se = FALSE ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Optimal Prey Displacement Rate") +
+  xlab("Predator Velocity") +
+  scale_x_continuous(expand = c(0, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
+
+predmode.fig <- plot_grid( predmode_1.plot, predmode_3.plot, predmode_2.plot, predmode_4.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
+
+ggsave("fig3.png", plot = predmode.fig, dpi = 300)
 ```
 
 
@@ -393,35 +474,7 @@ refuge_optim_fitness <- refuge.df$fitness[which(refuge.df$fitness == max(refuge.
 refuge_optim_CE <- refuge.df$mort_curve[which(refuge.df$fitness == max(refuge.df$fitness))] # The strength of the CE at the optimum
 refuge_optim_NCE <- 1 - refuge_optim_CE - refuge_optim_fitness # The strength of the NCE at the optimum
 
-refuge_1.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
-  geom_line( aes( y = growth_curve, color = "Growth" ) ) +
-  geom_line( aes( y = mort_curve, color = "red" ), linetype = "dashed" ) +
-  annotate(geom = "rect", xmin = refuge_optim - 0.025, xmax = refuge_optim + 0.025, 
-           ymin = 1 - refuge_optim_NCE, ymax = 0.998, 
-           color = "gray2", fill = "lightblue", alpha = 0.5) +
-  annotate( "text", x = refuge_optim + 0.05, y = 1 - refuge_optim_NCE/2, 
-            label = "NCE = 0.14", hjust = "left", size = 9/.pt  ) +
-  annotate(geom = "rect", xmin = refuge_optim - 0.025, xmax = refuge_optim + 0.025,
-           ymin = refuge_optim_CE, ymax = refuge_optim_CE + refuge_optim_fitness, 
-           color = "gray2", fill = "lightgreen", alpha = 0.5) +
-  annotate( "text", x = refuge_optim + 0.1, y = refuge_optim_CE + refuge_optim_fitness/2, 
-            label = "0.72", hjust = "left", size = 9/.pt  ) +
-  annotate(geom = "rect", xmin = refuge_optim - 0.025, xmax = refuge_optim + 0.025, 
-           ymin = 0.001, ymax = refuge_optim_CE, 
-           color = "gray2", fill = "red", alpha = 0.5) +
-  annotate( "text", x = refuge_optim + 0.05, y = refuge_optim_CE/2, 
-            label = "CE = 0.14", hjust = "left", size = 9/.pt  ) +
-  theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Growth and Mortality") +
-  xlab("Proportion of Time Spent in Refuge") +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         axis.title.x = element_blank(),
-         axis.text.x = element_blank(), legend.position = "bottom" ) + 
-  theme(legend.key = element_rect(fill = "white"), legend.text = element_text(color = "white"), legend.title = element_text(color = "white")) +
-  guides(color = guide_legend(override.aes = list(color = NA)))
+
 
 
 
@@ -458,25 +511,32 @@ refuge_optim_fitness2 <- refuge2.df$fitness[which(refuge2.df$fitness == max(refu
 refuge_optim_CE2 <- refuge2.df$mort_curve[which(refuge2.df$fitness == max(refuge2.df$fitness))] # The strength of the CE at the optimum
 refuge_optim_NCE2 <- 1 - refuge_optim_CE - refuge_optim_fitness # The strength of the NCE at the optimum
 
-refuge_2.plot <- ggplot( data = refuge2.df, aes( x = proptime ) ) +
+refuge.df$growth_baseline <- refuge2.df$growth_curve
+
+
+
+# Plot them all
+refuge_1.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ) ) +
-  geom_line( aes( y = mort_curve, color = "red" ), linetype = "dashed" ) +
-  annotate(geom = "rect", xmin = refuge_optim2 - 0.025, xmax = refuge_optim2 + 0.025, 
-           ymin = 1 - refuge_optim_NCE2 + 0.01, ymax = 0.998, 
-           color = "gray2", fill = "lightblue", alpha = 0.5) +
-  annotate( "text", x = refuge_optim2 + 0.05, y = 1 - refuge_optim_NCE2/2, 
-            label = "NCE = 0.13", hjust = "left", size = 9/.pt  ) +
-  annotate(geom = "rect", xmin = refuge_optim2 - 0.025, xmax = refuge_optim2 + 0.025,
-           ymin = refuge_optim_CE2, ymax = refuge_optim_CE2 + refuge_optim_fitness2, 
-           color = "gray2", fill = "lightgreen", alpha = 0.5) +
-  annotate( "text", x = refuge_optim2 + 0.1, y = refuge_optim_CE2 + refuge_optim_fitness2/2, 
-            label = "0.65", hjust = "left", size = 9/.pt  ) +
-  annotate(geom = "rect", xmin = refuge_optim2 - 0.025, xmax = refuge_optim2 + 0.025, 
-           ymin = 0.001, ymax = refuge_optim_CE2, 
-           color = "gray2", fill = "red", alpha = 0.5) +
-  annotate( "text", x = refuge_optim2 + 0.05, y = refuge_optim_CE2/2, 
-            label = "CE = 0.22", hjust = "left", size = 9/.pt  ) +
+  geom_line( aes( y = mort_curve, color = "Mortality" ), linetype = "dashed" ) +
+  geom_line( aes( y = growth_baseline ), color = "blue", linetype = "dashed" ) +
+  geom_ribbon( aes( ymin = growth_curve, ymax = growth_baseline ), fill = "blue", alpha = 0.25 )  +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
+  annotate(geom = "rect", xmin = refuge_optim - 0.025, xmax = refuge_optim + 0.025, 
+           ymin = 1 - refuge_optim_NCE, ymax = 0.998, 
+           color = "gray2", fill = "lightblue", alpha = 0.5) +
+  annotate( "text", x = refuge_optim + 0.05, y = 1 - refuge_optim_NCE/2, 
+            label = "NCE = 0.14", hjust = "left", size = 7/.pt  ) +
+  annotate(geom = "rect", xmin = refuge_optim - 0.025, xmax = refuge_optim + 0.025,
+           ymin = refuge_optim_CE, ymax = refuge_optim_CE + refuge_optim_fitness, 
+           color = "gray2", fill = "lightgreen", alpha = 0.5) +
+  annotate( "text", x = refuge_optim + 0.1, y = refuge_optim_CE + refuge_optim_fitness/2, 
+            label = "0.72", hjust = "left", size = 7/.pt  ) +
+  annotate(geom = "rect", xmin = refuge_optim - 0.025, xmax = refuge_optim + 0.025, 
+           ymin = 0.001, ymax = refuge_optim_CE, 
+           color = "gray2", fill = "red", alpha = 0.5) +
+  annotate( "text", x = refuge_optim + 0.05, y = refuge_optim_CE/2, 
+            label = "CE = 0.14", hjust = "left", size = 7/.pt  ) +
   ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
@@ -488,11 +548,100 @@ refuge_2.plot <- ggplot( data = refuge2.df, aes( x = proptime ) ) +
   theme(legend.key = element_rect(fill = "white"), legend.text = element_text(color = "white"), legend.title = element_text(color = "white")) +
   guides(color = guide_legend(override.aes = list(color = NA)))
 
-prey_h.fig <- plot_grid( refuge_1.plot, refuge_2.plot, ncol = 1, labels = "auto", hjust = -12.5, align = c("hv") )
+
+refuge_2.plot <- ggplot( data = refuge2.df, aes( x = proptime ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ) ) +
+  geom_line( aes( y = mort_curve, color = "Mortality" ), linetype = "dashed" ) +
+  annotate(geom = "rect", xmin = refuge_optim2 - 0.025, xmax = refuge_optim2 + 0.025, 
+           ymin = 1 - refuge_optim_NCE2 + 0.01, ymax = 0.998, 
+           color = "gray2", fill = "lightblue", alpha = 0.5) +
+  annotate( "text", x = refuge_optim2 + 0.05, y = 1 - refuge_optim_NCE2/2, 
+            label = "NCE = 0.13", hjust = "left", size = 7/.pt  ) +
+  annotate(geom = "rect", xmin = refuge_optim2 - 0.025, xmax = refuge_optim2 + 0.025,
+           ymin = refuge_optim_CE2, ymax = refuge_optim_CE2 + refuge_optim_fitness2, 
+           color = "gray2", fill = "lightgreen", alpha = 0.5) +
+  annotate( "text", x = refuge_optim2 + 0.1, y = refuge_optim_CE2 + refuge_optim_fitness2/2, 
+            label = "0.65", hjust = "left", size = 7/.pt  ) +
+  annotate(geom = "rect", xmin = refuge_optim2 - 0.025, xmax = refuge_optim2 + 0.025, 
+           ymin = 0.001, ymax = refuge_optim_CE2, 
+           color = "gray2", fill = "red", alpha = 0.5) +
+  annotate( "text", x = refuge_optim2 + 0.05, y = refuge_optim_CE2/2, 
+            label = "CE = 0.22", hjust = "left", size = 7/.pt  ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Proportion of Time Spent in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
+  theme( legend.position = "bottom" )
+
+
+# Plot % NPE of TPE and optimal RITR
+# Calculate change in NCE % of total predator effect, and optimal RITR, with decreasing h:
+h_vec <- seq( 10, 1, by = -0.1 )
+proptime_vec <- seq(0, 1, by = 0.005)
+prey_h_pctNCE.df <- as.data.frame(mat.or.vec( length(h_vec), 3 ) )
+colnames(prey_h_pctNCE.df) <- c("h", "NCE_TPE", "OptimalRITR")
+
+for (i in 1:length( h_vec ) ){
+prey_h_pctNCE.df[i, 1] <- h_vec[i]
+
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+growth_A_val <- growth.curve( s = 1, R = 1, h = h_vec[i] ) * cost_constant_val # Growth outside refuge during an hour
+growth_B_val <- growth.curve( s = 1, R = 0.1, h = h_vec[i] ) * cost_constant_val # Growth inside refuge during an hour
+
+# Growth curve
+# Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
+ph_growth_curve <- (1 - proptime_vec) * growth_A_val + (proptime_vec) * growth_B_val
+ph_growth_curve <- ph_growth_curve / max( ph_growth_curve ) # Scale to 1
+
+# Mortality curve
+mort_val_A <- 0.4 # Mortality outside the refuge during an hour
+mort_val_B <- 0.01 # Mortality inside the refuge during an hour
+
+# Weighted mean of risk during time spent outside refuge + risk during time spent inside refuge
+ph_mort_curve <- exp( ( 1 - proptime_vec ) * log( mort_val_A ) + ( proptime_vec ) * log( mort_val_B ) )
+
+ph_fitness <- ph_growth_curve - ph_mort_curve # fitness
+ph_NCE_TPE <- (1 - ph_growth_curve)/(ph_mort_curve + (1 - ph_growth_curve))# NCE/TPE
+
+prey_h_pctNCE.df[i, 2] <- ph_NCE_TPE[ which.max(ph_fitness) ]
+
+# Some other important metrics
+prey_h_pctNCE.df[i, 3] <- speed.vec[ which.max(ph_fitness) ]
+}
+
+prey_h_pctNCE.df$intake <- 1/prey_h_pctNCE.df$h
+
+# Plot both:
+refuge_3.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
+  geom_smooth( aes( y = NCE_TPE ), color = "black", se = FALSE ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("% NCE Contribution to TPE") +
+  xlab("Prey Resource Intake Rate (1/h)") +
+  scale_x_continuous(expand = c(0, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), axis.title.x = element_blank(),
+         axis.text.x = element_blank(), aspect.ratio = 1)
+
+refuge_4.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
+  geom_smooth( aes( y = OptimalRITR ), color = "black", se = FALSE ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Optimal Prop. Time Spent in Refuge") +
+  xlab("Prey Resource Intake Rate (1/h)") +
+  scale_x_continuous(expand = c(0, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
+
+predmode.fig <- plot_grid( refuge_1.plot, refuge_3.plot, refuge_2.plot, refuge_4.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
+
+
+ggsave("fig4.png", plot = predmode.fig, dpi = 300)
 
 ```
 
-## Warming vs. prop time
+# Warming vs. prop time
 
 ```{r}
 ## Derive the trait curves
@@ -521,8 +670,8 @@ h_g.val <- 20
 c_g.val <- 1/exp(1)
 
 # Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
-growth_A_val <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 20) # Growth outside refuge during an hour
-growth_B_val <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 22.5) # Growth inside refuge during an hour, lower due to temperature
+growth_A_val <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 19) # Growth outside refuge during an hour
+growth_B_val <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 22) # Growth inside refuge during an hour, lower due to temperature
 
 # Growth curve
 # Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
@@ -545,6 +694,35 @@ therm_refuge_optim_fitness <- therm_refuge.df$fitness[which(therm_refuge.df$fitn
 therm_refuge_optim_CE <- therm_refuge.df$mort_curve[which(therm_refuge.df$fitness == max(therm_refuge.df$fitness))] # The strength of the CE at the optimum
 therm_refuge_optim_NCE <- 1 - therm_refuge_optim_CE - therm_refuge_optim_fitness # The strength of the NCE at the optimum
 
+#Make a plot of the initial TPC
+temp_vec <- seq( 10, 26, by = 0.1 )
+tpc.df <- as.data.frame( mat.or.vec (length(temp_vec), 2) )
+colnames(tpc.df) <- c("temperature", "performance")
+tpc.df$temperature <- temp_vec
+tpc.df$performance <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = temp_vec)
+
+tpc_labels.df <- as.data.frame( mat.or.vec ( 2, 2 ) )
+colnames(tpc_labels.df) <- c("temperature", "performance")
+tpc_labels.df$temperature <- c(19, 22)
+tpc_labels.df$performance <- c( 0.951229425, 0.818730753)
+
+tpc_1.plot <- ggplot(data = tpc.df, aes( x = temperature, y = performance ) ) +
+  geom_line() + 
+  geom_point( data = tpc_labels.df ) +
+  geom_text( data = tpc_labels.df, label = c("A", "B"), nudge_x = 1 ) + 
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Prey Growth") +
+  xlab("Temperature (°C)") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(10, 17.5, 25), labels = c("Cool", "Warm", "Hot") ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1.1), breaks = c(0, 0.5, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
+         axis.title.x = element_blank(),
+         axis.text.x = element_blank() ) 
+
+
+
+
+# Plot of Unwarmed Scenario
 therm_refuge_1.plot <- ggplot( data = therm_refuge.df, aes( x = proptime ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ) ) +
   geom_line( aes( y = mort_curve, color = "red" ), linetype = "dashed" ) +
@@ -552,17 +730,17 @@ therm_refuge_1.plot <- ggplot( data = therm_refuge.df, aes( x = proptime ) ) +
            ymin = 1 - therm_refuge_optim_NCE, ymax = 0.998, 
            color = "gray2", fill = "lightblue", alpha = 0.5) +
   annotate( "text", x = therm_refuge_optim + 0.05, y = 1 - therm_refuge_optim_NCE/2, 
-            label = "NCE = 0.12", hjust = "left", size = 9/.pt  ) +
+            label = "NCE = 0.14", hjust = "left", size = 8/.pt  ) +
   annotate(geom = "rect", xmin = therm_refuge_optim - 0.025, xmax = therm_refuge_optim + 0.025,
            ymin = therm_refuge_optim_CE, ymax = therm_refuge_optim_CE + therm_refuge_optim_fitness, 
            color = "gray2", fill = "lightgreen", alpha = 0.5) +
   annotate( "text", x = therm_refuge_optim + 0.1, y = therm_refuge_optim_CE + therm_refuge_optim_fitness/2, 
-            label = "0.81", hjust = "left", size = 9/.pt  ) +
+            label = "0.83", hjust = "left", size = 8/.pt  ) +
   annotate(geom = "rect", xmin = therm_refuge_optim - 0.025, xmax = therm_refuge_optim + 0.025, 
            ymin = 0.001, ymax = therm_refuge_optim_CE, 
            color = "gray2", fill = "red", alpha = 0.5) +
-  annotate( "text", x = therm_refuge_optim + 0.05, y = therm_refuge_optim_CE/2, 
-            label = "CE = 0.07", hjust = "left", size = 9/.pt  ) +
+  annotate( "text", x = therm_refuge_optim + 0.05, y = 0.05, 
+            label = "CE = 0.03", hjust = "left", size = 8/.pt  ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
@@ -584,8 +762,8 @@ colnames(therm_refuge2.df) <- c("proptime", "growth_curve", "mort_curve", "fitne
 therm_refuge2.df$proptime <- seq(0, 1, by = 1/24) 
 
 # Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
-growth_A_val <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 22.5) # Growth outside refuge during an hour
-growth_B_val <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 25) # Growth inside refuge during an hour, lower due to temperature
+growth_A_val <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 21.5) # Growth outside refuge during an hour
+growth_B_val <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 24.5) # Growth inside refuge during an hour, lower due to temperature
 
 # Growth curve
 # Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
@@ -609,34 +787,59 @@ therm_refuge_optim_fitness2 <- therm_refuge2.df$fitness[which(therm_refuge2.df$f
 therm_refuge_optim_CE2 <- therm_refuge2.df$mort_curve[which(therm_refuge2.df$fitness == max(therm_refuge2.df$fitness))] # The strength of the CE at the optimum
 therm_refuge_optim_NCE2 <- 1 - therm_refuge_optim_CE2 - therm_refuge_optim_fitness2 # The strength of the NCE at the optimum
 
+
+# Repeat TPC plot with new temperatures
+tpc_labels2.df <- as.data.frame( mat.or.vec ( 2, 2 ) )
+colnames(tpc_labels2.df) <- c("temperature", "performance")
+tpc_labels2.df$temperature <- c(21.5, 24.5)
+tpc_labels2.df$performance <- c( 0.893597347, 0.363309569)
+
+tpc_2.plot <- ggplot(data = tpc.df, aes( x = temperature, y = performance ) ) +
+  geom_line() + 
+  geom_point( data = tpc_labels2.df ) +
+  geom_text( data = tpc_labels2.df, label = c("A", "B"), nudge_x = -1 ) + 
+  annotate("segment", x = 17.5, y = 0.25, xend = 23, yend = 0.25,
+    arrow = arrow(),
+    color = "red",
+    size = 1) +
+  annotate( "text", x = 20, y = 0.4, color = "red", label = "Warming") +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Prey Growth") +
+  xlab("Temperature (°C)") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(10, 17.5, 25), labels = c("Cool", "Warm", "Hot") ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1.1), breaks = c(0, 0.5, 1) ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 )
+
+
 therm_refuge_2.plot <- ggplot( data = therm_refuge2.df, aes( x = proptime ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ) ) +
-  geom_line( aes( y = mort_curve, color = "red" ), linetype = "dashed" ) +
+  geom_line( aes( y = mort_curve, color = "Mortality" ), linetype = "dashed" ) +
   annotate(geom = "rect", xmin = therm_refuge_optim2 - 0.025, xmax = therm_refuge_optim2 + 0.025, 
            ymin = 1 - therm_refuge_optim_NCE2, ymax = 0.998, 
            color = "gray2", fill = "lightblue", alpha = 0.5) +
   annotate( "text", x = therm_refuge_optim2 + 0.05, y = 1 - therm_refuge_optim_NCE2/2, 
-            label = "NCE = 0.42", hjust = "left", size = 9/.pt  ) +
+            label = "NCE = 0.26", hjust = "left", size = 8/.pt  ) +
   annotate(geom = "rect", xmin = therm_refuge_optim2 - 0.025, xmax = therm_refuge_optim2 + 0.025,
            ymin = therm_refuge_optim_CE2, ymax = therm_refuge_optim_CE2 + therm_refuge_optim_fitness2, 
            color = "gray2", fill = "lightgreen", alpha = 0.5) +
   annotate( "text", x = therm_refuge_optim2 + 0.1, y = therm_refuge_optim_CE2 + therm_refuge_optim_fitness2/2, 
-            label = "0.46", hjust = "left", size = 9/.pt  ) +
+            label = "0.60", hjust = "left", size = 8/.pt  ) +
   annotate(geom = "rect", xmin = therm_refuge_optim2 - 0.025, xmax = therm_refuge_optim2 + 0.025, 
            ymin = 0.001, ymax = therm_refuge_optim_CE2, 
            color = "gray2", fill = "red", alpha = 0.5) +
   annotate( "text", x = therm_refuge_optim2 + 0.05, y = therm_refuge_optim_CE2/2, 
-            label = "CE = 0.12", hjust = "left", size = 9/.pt  ) +
+            label = "CE = 0.14", hjust = "left", size = 8/.pt  ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom" ) + 
-  theme(legend.key = element_rect(fill = "white"), legend.text = element_text(color = "white"), legend.title = element_text(color = "white")) +
-  guides(color = guide_legend(override.aes = list(color = NA)))
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1) +
+  theme( legend.position = "bottom" )
 
-warming.fig <- plot_grid( therm_refuge_1.plot, therm_refuge_2.plot, ncol = 1, labels = "auto", hjust = -12.5, align = c("hv") )
+warming.fig <- plot_grid( tpc_1.plot, therm_refuge_1.plot, tpc_2.plot, therm_refuge_2.plot, ncol = 2, labels = "auto", hjust = -1.5, align = c("hv") )
 
+
+ggsave("fig5.png", plot = warming.fig, dpi = 300)
 ```
