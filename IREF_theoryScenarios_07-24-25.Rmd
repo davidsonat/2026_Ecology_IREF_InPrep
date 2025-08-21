@@ -516,10 +516,8 @@ refuge.df$growth_baseline <- refuge2.df$growth_curve
 
 # Plot them all
 refuge_1.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
-  geom_line( aes( y = growth_curve, color = "Growth" ) ) +
   geom_line( aes( y = mort_curve, color = "Mortality" ), linetype = "dashed" ) +
-  geom_line( aes( y = growth_baseline ), color = "blue", linetype = "dashed" ) +
-  geom_ribbon( aes( ymin = growth_curve, ymax = growth_baseline ), fill = "blue", alpha = 0.25 )  +
+  geom_line( aes( y = growth_curve, color = "Growth" ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   annotate(geom = "rect", xmin = refuge_optim - 0.025, xmax = refuge_optim + 0.025, 
            ymin = 1 - refuge_optim_NCE, ymax = 0.998, 
