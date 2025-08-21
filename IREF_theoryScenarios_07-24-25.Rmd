@@ -612,12 +612,15 @@ prey_h_pctNCE.df[i, 4] <- max(ph_fitness)
 
 prey_h_pctNCE.df$intake <- 1/prey_h_pctNCE.df$h
 
+
+
+
 # Plot both:
 refuge_3.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
   geom_point( aes( y = NCE_TPE, fill = Fitness ), shape = 21, size = 2 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("% NCE Contribution to TPE") +
-  xlab("Prey Resource Intake Rate (1/h)") +
+  xlab("Prey Resource Processing Rate (1/h)") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
   scale_fill_continuous(type = "viridis", guide = "none") +
@@ -630,7 +633,7 @@ refuge_4.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
   geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, size = 2 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Optimal Prop. Time Spent in Refuge") +
-  xlab("Prey Resource Intake Rate (1/h)") +
+  xlab("Prey Resource Processing Rate (1/h)") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1) ) +
   scale_fill_continuous(type = "viridis") +
@@ -639,7 +642,7 @@ refuge_4.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
 
 predmode.fig <- plot_grid( refuge_1.plot, refuge_3.plot, refuge_2.plot, refuge_4.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
-ggsave("fig4.png", plot = predmode.fig, dpi = 300)
+#ggsave("fig4.png", plot = predmode.fig, dpi = 300)
 
 ```
 
@@ -843,5 +846,5 @@ therm_refuge_2.plot <- ggplot( data = therm_refuge2.df, aes( x = proptime ) ) +
 warming.fig <- plot_grid( tpc_1.plot, therm_refuge_1.plot, tpc_2.plot, therm_refuge_2.plot, ncol = 2, labels = "auto", hjust = -1.5, align = c("hv") )
 
 
-ggsave("fig5.png", plot = warming.fig, dpi = 300)
+#ggsave("fig5.png", plot = warming.fig, dpi = 300)
 ```
