@@ -152,8 +152,7 @@ fig1_a.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   annotate( "text", x = 0.25, y = 0.85, label = "Growth", size = 9/.pt  ) +
   annotate( "text", x = 0.5, y = 0.35, label = "Mortality", size = 9/.pt  ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         axis.title.y = element_blank(), legend.position = "bottom" ) + 
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom" ) + 
   theme(legend.key = element_rect(fill = "white"), legend.text = element_text(color = "white"), legend.title = element_text(color = "white")) +
   guides(color = guide_legend(override.aes = list(color = NA)))
 
@@ -323,7 +322,7 @@ preddens_4.plot <- ggplot( data = preddens_pctNCE.df, aes( x = k ) ) +
 
 preddens.fig <- plot_grid( preddens_1.plot, preddens_3.plot, preddens_2.plot, preddens_4.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
-ggsave("fig2.png", plot = preddens.fig, dpi = 300)
+# ggsave("fig2.png", plot = preddens.fig, dpi = 300)
 ```
 
 ```{r}
@@ -433,7 +432,7 @@ predmode_4.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
 
 predmode.fig <- plot_grid( predmode_1.plot, predmode_3.plot, predmode_2.plot, predmode_4.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
-ggsave("fig3.png", plot = predmode.fig, dpi = 300)
+# ggsave("fig3.png", plot = predmode.fig, dpi = 300)
 ```
 
 
@@ -539,7 +538,7 @@ refuge_1.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
             label = "CE = 0.14", hjust = "left", size = 7/.pt  ) +
   ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
@@ -570,7 +569,7 @@ refuge_2.plot <- ggplot( data = refuge2.df, aes( x = proptime ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
@@ -581,8 +580,8 @@ refuge_2.plot <- ggplot( data = refuge2.df, aes( x = proptime ) ) +
 # Calculate change in NCE % of total predator effect, and optimal RITR, with decreasing h:
 h_vec <- seq( 10, 1, by = -0.1 )
 proptime_vec <- seq(0, 1, by = 0.005)
-prey_h_pctNCE.df <- as.data.frame(mat.or.vec( length(h_vec), 3 ) )
-colnames(prey_h_pctNCE.df) <- c("h", "NCE_TPE", "OptimalRITR")
+prey_h_pctNCE.df <- as.data.frame(mat.or.vec( length(h_vec), 4 ) )
+colnames(prey_h_pctNCE.df) <- c("h", "NCE_TPE", "OptimalRITR", "Fitness")
 
 for (i in 1:length( h_vec ) ){
 prey_h_pctNCE.df[i, 1] <- h_vec[i]
@@ -610,32 +609,37 @@ prey_h_pctNCE.df[i, 2] <- ph_NCE_TPE[ which.max(ph_fitness) ]
 
 # Some other important metrics
 prey_h_pctNCE.df[i, 3] <- speed.vec[ which.max(ph_fitness) ]
+prey_h_pctNCE.df[i, 4] <- max(ph_fitness)
 }
 
 prey_h_pctNCE.df$intake <- 1/prey_h_pctNCE.df$h
 
 # Plot both:
 refuge_3.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
-  geom_smooth( aes( y = NCE_TPE ), color = "black", se = FALSE ) +
+  geom_point( aes( y = NCE_TPE, fill = Fitness ), shape = 21, size = 2 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("% NCE Contribution to TPE") +
   xlab("Prey Resource Intake Rate (1/h)") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
+  scale_fill_continuous(type = "viridis", guide = "none") +
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), axis.title.x = element_blank(),
-         axis.text.x = element_blank(), aspect.ratio = 1)
+         axis.text.x = element_blank(), aspect.ratio = 1) + 
+  theme(legend.key = element_rect(fill = "white"), legend.text = element_text(color = "white"), legend.title = element_text(color = "white")) +
+  guides(color = guide_legend(override.aes = list(color = NA)))
 
 refuge_4.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
-  geom_smooth( aes( y = OptimalRITR ), color = "black", se = FALSE ) +
+  geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, size = 2 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Optimal Prop. Time Spent in Refuge") +
   xlab("Prey Resource Intake Rate (1/h)") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1) ) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
+  scale_fill_continuous(type = "viridis") +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1) +
+  theme( legend.position = "bottom" )
 
 predmode.fig <- plot_grid( refuge_1.plot, refuge_3.plot, refuge_2.plot, refuge_4.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
-
 
 ggsave("fig4.png", plot = predmode.fig, dpi = 300)
 
@@ -832,7 +836,7 @@ therm_refuge_2.plot <- ggplot( data = therm_refuge2.df, aes( x = proptime ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1) +
