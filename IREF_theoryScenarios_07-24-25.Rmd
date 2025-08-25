@@ -221,8 +221,6 @@ colnames(preddens.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitn
 preddens_1.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ) ) +
   geom_line( aes( y = mort_baseline, color = "Mortality" ), linetype = "dashed" ) +
-  geom_line( aes( y = mort_curve ), color = "red", linetype = "solid" ) +
-  geom_ribbon( aes( ymin = mort_curve, ymax = mort_baseline ), fill = "red", alpha = 0.25 )  +
   annotate(geom = "rect", xmin = baseline_optim - 0.025, xmax = baseline_optim + 0.025, 
            ymin = 1 - baseline_optim_NCE, ymax = 0.998, 
            color = "gray2", fill = "lightblue", alpha = 0.5) +
@@ -280,8 +278,8 @@ preddens_2.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
 
 # Calculate change in NCE % of total predator effect, and optimal RITR, with decreasing h:
 k_vec <- seq( 0, 2.5, by = 0.05 )
-preddens_pctNCE.df <- as.data.frame(mat.or.vec( length(k_vec), 3 ) ) 
-colnames(preddens_pctNCE.df) <- c("k", "NCE_TPE", "OptimalRITR")
+preddens_pctNCE.df <- as.data.frame(mat.or.vec( length(k_vec), 4 ) ) 
+colnames(preddens_pctNCE.df) <- c("k", "NCE_TPE", "OptimalRITR", "Fitness")
 
 for (i in 1:length( k_vec ) ){
 preddens_pctNCE.df[i, 1] <- k_vec[i]
@@ -295,6 +293,7 @@ preddens_pctNCE.df[i, 2] <- pd_NCE_TPE[ which.max(pd_fitness) ]
 
 # Some other important metrics
 preddens_pctNCE.df[i, 3] <- speed.vec[ which.max(pd_fitness) ]
+preddens_pctNCE.df[i, 4] <- max(pd_fitness)
 }
 
 # Drop NaN from first row
@@ -302,27 +301,31 @@ preddens_pctNCE.df[1, 2] <- 0
 
 # Plot both:
 preddens_3.plot <- ggplot( data = preddens_pctNCE.df, aes( x = k ) ) +
-  geom_smooth( aes( y = NCE_TPE ), color = "black", se = FALSE ) +
+  geom_point( aes( y = NCE_TPE, fill = Fitness ), color = "black", shape = 21, size = 2.5 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("% NCE Contribution to TPE") +
   xlab("Predator Density") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), axis.title.x = element_blank(),
-         axis.text.x = element_blank(), aspect.ratio = 1)
+  scale_fill_continuous( type = "viridis" ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom")
 
 preddens_4.plot <- ggplot( data = preddens_pctNCE.df, aes( x = k ) ) +
-  geom_smooth( aes( y = OptimalRITR ), color = "black", se = FALSE ) +
+  geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, size = 2.5 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Optimal Prey Displacement Rate") +
   xlab("Predator Density") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
+  scale_fill_continuous( type = "viridis" ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
+         axis.title.x = element_blank(),
+         axis.text.x = element_blank(), legend.position = "bottom" ) +
+  guides(fill = "none")
 
-preddens.fig <- plot_grid( preddens_1.plot, preddens_3.plot, preddens_2.plot, preddens_4.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
+preddens.fig <- plot_grid( preddens_1.plot, preddens_4.plot, preddens_2.plot, preddens_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
-# ggsave("fig2.png", plot = preddens.fig, dpi = 300)
+ggsave("fig2.png", plot = preddens.fig, dpi = 300)
 ```
 
 ```{r}
@@ -333,8 +336,6 @@ colnames(predmode.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitn
 predmode_1.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ) ) +
   geom_line( aes( y = mort_baseline, color = "Mortality" ), linetype = "dashed" ) +
-  geom_line( aes( y = mort_curve ), color = "red", linetype = "solid" ) +
-  geom_ribbon( aes( ymin = mort_curve, ymax = mort_baseline ), fill = "red", alpha = 0.25 )  +
   annotate(geom = "rect", xmin = preddens_optim - 0.025, xmax = preddens_optim + 0.025, 
            ymin = 1 - preddens_optim_NCE, ymax = 0.998, 
            color = "gray2", fill = "lightblue", alpha = 0.5) +
@@ -359,8 +360,8 @@ predmode_1.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
          axis.title.x = element_blank(),
          axis.text.x = element_blank(), legend.position = "bottom" ) + 
-  theme(legend.key = element_rect(fill = "white"), legend.text = element_text(color = "white"), legend.title = element_text(color = "white")) +
-  guides(color = guide_legend(override.aes = list(color = NA)))
+  guides(color = "none")
+
 
 predmode_2.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, colour = "Growth" ), ) +
@@ -392,9 +393,9 @@ predmode_2.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
 
 # Calculate change in NCE % of total predator effect, and optimal RITR, with decreasing h:
 v_vec <- seq( 0, 2.5, by = 0.05 )
-predmode_pctNCE.df <- as.data.frame(mat.or.vec( length(v_vec), 3 ) )
+predmode_pctNCE.df <- as.data.frame(mat.or.vec( length(v_vec), 4 ) )
 pred_constant_val <- 0.7071068 * 0.8999994 # this changes to anchor the mortality curve in the same spot
-colnames(predmode_pctNCE.df) <- c("v", "NCE_TPE", "OptimalRITR")
+colnames(predmode_pctNCE.df) <- c("v", "NCE_TPE", "OptimalRITR", "Fitness")
 
 for (i in 1:length( v_vec ) ){
 predmode_pctNCE.df[i, 1] <- v_vec[i]
@@ -408,31 +409,38 @@ predmode_pctNCE.df[i, 2] <- pm_NCE_TPE[ which.max(pm_fitness) ]
 
 # Some other important metrics
 predmode_pctNCE.df[i, 3] <- speed.vec[ which.max(pm_fitness) ]
+predmode_pctNCE.df[i, 4] <- max(pm_fitness)
 }
 
 # Plot both:
 predmode_3.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
-  geom_smooth( aes( y = NCE_TPE ), color = "black", se = FALSE ) +
+  geom_point( aes( y = NCE_TPE, fill = Fitness ), shape = 21, color = "black", size = 2.5) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("% NCE Contribution to TPE") +
   xlab("Predator Velocity") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), axis.title.x = element_blank(),
-         axis.text.x = element_blank(), aspect.ratio = 1)
+  scale_fill_continuous( type = "viridis" ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom")
 
 predmode_4.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
-  geom_smooth( aes( y = OptimalRITR ), color = "black", se = FALSE ) +
+  geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, color = "black", size = 2.5 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Optimal Prey Displacement Rate") +
   xlab("Predator Velocity") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1)
+  scale_fill_continuous( type = "viridis" ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), 
+         axis.title.x = element_blank(),
+         axis.text.x = element_blank(),
+         aspect.ratio = 1, 
+         legend.position = "bottom" ) +
+  guides( fill = "none" )
 
-predmode.fig <- plot_grid( predmode_1.plot, predmode_3.plot, predmode_2.plot, predmode_4.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
+predmode.fig <- plot_grid( predmode_1.plot, predmode_4.plot, predmode_2.plot, predmode_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
-# ggsave("fig3.png", plot = predmode.fig, dpi = 300)
+ ggsave("fig3.png", plot = predmode.fig, dpi = 300)
 ```
 
 
@@ -449,12 +457,14 @@ refuge.df$proptime <- seq(0, 1, by = 1/24)
 cost_constant_val <- 9 # a constant Scott applied to the growth curve in the calcs to make the numbers cleaner
 
 # Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
-growth_A_val <- growth.curve( s = 1, R = 1, h = 8 ) * cost_constant_val # Growth outside refuge during an hour
-growth_B_val <- growth.curve( s = 1, R = 0.1, h = 8 ) * cost_constant_val # Growth inside refuge during an hour
+growth_A_val <- growth.curve( s = 1, R = 1, h = 10 ) * cost_constant_val # Growth outside refuge during an hour
+growth_B_val <- growth.curve( s = 1, R = 0.1, h = 10 ) * cost_constant_val # Growth inside refuge during an hour
 
 # Growth curve
 # Growth is additive, so this is simply (growth during time outside refuge + growth during time inside refuge)
 refuge.df$growth_curve <- (1 - refuge.df$proptime) * growth_A_val + (refuge.df$proptime) * growth_B_val
+refuge.df$growth_curve <- refuge.df$growth_curve/(0.819) # Anchor at 1
+
 
 # Mortality curve
 mort_val_A <- 0.4 # Mortality outside the refuge during an hour
@@ -542,8 +552,7 @@ refuge_1.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
          axis.title.x = element_blank(),
          axis.text.x = element_blank(), legend.position = "bottom" ) + 
-  theme(legend.key = element_rect(fill = "white"), legend.text = element_text(color = "white"), legend.title = element_text(color = "white")) +
-  guides(color = guide_legend(override.aes = list(color = NA)))
+  guides(color = "none")
 
 
 refuge_2.plot <- ggplot( data = refuge2.df, aes( x = proptime ) ) +
@@ -617,32 +626,33 @@ prey_h_pctNCE.df$intake <- 1/prey_h_pctNCE.df$h
 
 # Plot both:
 refuge_3.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
-  geom_point( aes( y = NCE_TPE, fill = Fitness ), shape = 21, size = 2 ) +
+  geom_point( aes( y = NCE_TPE, fill = Fitness ), shape = 21, size = 2.5, color = "black" ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("% NCE Contribution to TPE") +
   xlab("Prey Resource Processing Rate (1/h)") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
-  scale_fill_continuous(type = "viridis", guide = "none") +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), axis.title.x = element_blank(),
-         axis.text.x = element_blank(), aspect.ratio = 1) + 
-  theme(legend.key = element_rect(fill = "white"), legend.text = element_text(color = "white"), legend.title = element_text(color = "white")) +
-  guides(color = guide_legend(override.aes = list(color = NA)))
+  scale_fill_continuous(type = "viridis" ) +
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, 
+         legend.position = "bottom" )
+
 
 refuge_4.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
-  geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, size = 2 ) +
+  geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, size = 2.5, color = "black" ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Optimal Prop. Time Spent in Refuge") +
   xlab("Prey Resource Processing Rate (1/h)") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1) ) +
   scale_fill_continuous(type = "viridis") +
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1) +
-  theme( legend.position = "bottom" )
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), axis.title.x = element_blank(),
+         axis.text.x = element_blank(), aspect.ratio = 1, legend.position = "bottom" ) +
+  guides(fill = "none" )
 
-predmode.fig <- plot_grid( refuge_1.plot, refuge_3.plot, refuge_2.plot, refuge_4.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
-#ggsave("fig4.png", plot = predmode.fig, dpi = 300)
+predmode.fig <- plot_grid( refuge_1.plot, refuge_4.plot, refuge_2.plot, refuge_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
+
+ggsave("fig4.png", plot = predmode.fig, dpi = 300)
 
 ```
 
@@ -843,8 +853,8 @@ therm_refuge_2.plot <- ggplot( data = therm_refuge2.df, aes( x = proptime ) ) +
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1) +
   theme( legend.position = "bottom" )
 
-warming.fig <- plot_grid( tpc_1.plot, therm_refuge_1.plot, tpc_2.plot, therm_refuge_2.plot, ncol = 2, labels = "auto", hjust = -1.5, align = c("hv") )
+warming.fig <- plot_grid( tpc_1.plot, therm_refuge_1.plot, tpc_2.plot, therm_refuge_2.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
 
-#ggsave("fig5.png", plot = warming.fig, dpi = 300)
+ggsave("fig5.png", plot = warming.fig, dpi = 300)
 ```
