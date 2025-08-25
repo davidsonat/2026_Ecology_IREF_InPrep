@@ -313,7 +313,7 @@ preddens_3.plot <- ggplot( data = preddens_pctNCE.df, aes( x = k ) ) +
 preddens_4.plot <- ggplot( data = preddens_pctNCE.df, aes( x = k ) ) +
   geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, size = 2.5 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Optimal Prey Displacement Rate") +
+  ylab("Optimal RITR") +
   xlab("Predator Density") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
@@ -325,7 +325,7 @@ preddens_4.plot <- ggplot( data = preddens_pctNCE.df, aes( x = k ) ) +
 
 preddens.fig <- plot_grid( preddens_1.plot, preddens_4.plot, preddens_2.plot, preddens_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
-ggsave("fig2.png", plot = preddens.fig, dpi = 300)
+# ggsave("fig2.png", plot = preddens.fig, dpi = 300)
 ```
 
 ```{r}
@@ -426,7 +426,7 @@ predmode_3.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
 predmode_4.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
   geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, color = "black", size = 2.5 ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Optimal Prey Displacement Rate") +
+  ylab("Optimal RITR") +
   xlab("Predator Velocity") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
@@ -440,7 +440,7 @@ predmode_4.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
 
 predmode.fig <- plot_grid( predmode_1.plot, predmode_4.plot, predmode_2.plot, predmode_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
- ggsave("fig3.png", plot = predmode.fig, dpi = 300)
+# ggsave("fig3.png", plot = predmode.fig, dpi = 300)
 ```
 
 
@@ -615,7 +615,7 @@ ph_NCE_TPE <- (1 - ph_growth_curve)/(ph_mort_curve + (1 - ph_growth_curve))# NCE
 prey_h_pctNCE.df[i, 2] <- ph_NCE_TPE[ which.max(ph_fitness) ]
 
 # Some other important metrics
-prey_h_pctNCE.df[i, 3] <- speed.vec[ which.max(ph_fitness) ]
+prey_h_pctNCE.df[i, 3] <- proptime_vec[ which.max(ph_fitness) ]
 prey_h_pctNCE.df[i, 4] <- max(ph_fitness)
 }
 
@@ -640,7 +640,7 @@ refuge_3.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
 refuge_4.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
   geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, size = 2.5, color = "black" ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
-  ylab("Optimal Prop. Time Spent in Refuge") +
+  ylab("Optimal RITR") +
   xlab("Prey Resource Processing Rate (1/h)") +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1) ) +
