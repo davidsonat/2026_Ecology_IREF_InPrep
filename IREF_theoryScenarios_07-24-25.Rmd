@@ -236,6 +236,7 @@ preddens_1.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
            color = "gray2", fill = "red", alpha = 0.5) +
   annotate( "text", x = baseline_optim + 0.05, y = baseline_optim_CE/2 - 0.05, 
             label = "CE = 0.22", hjust = "left", size = 8/.pt  ) +
+  annotate("text", x = 0.125, y = 0.05, label = "P = 0.45", size = 9/.pt ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
@@ -269,6 +270,7 @@ preddens_2.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
            color = "gray2", fill = "red", alpha = 0.5) +
   annotate( "text", x = preddens_optim + 0.05, y = preddens_optim_CE/2 - 0.05, 
             label = "CE = 0.32", hjust = "left", size = 7/.pt  ) +
+  annotate("text", x = 0.125, y = 0.05, label = "P = 0.90", size = 9/.pt ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_colour_manual(name = "Curve", values = c("blue", "red")) +
@@ -305,6 +307,8 @@ preddens_3.plot <- ggplot( data = preddens_pctNCE.df, aes( x = k ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("% NCE Contribution to TPE") +
   xlab("Predator Density") +
+  annotate('text', x = 0.45, y = 0.37, label = 'a') +
+  annotate('text', x = 0.9, y = 0.42, label = 'b') +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
   scale_fill_continuous( type = "viridis" ) +
@@ -315,6 +319,8 @@ preddens_4.plot <- ggplot( data = preddens_pctNCE.df, aes( x = k ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Optimal RITR") +
   xlab("Predator Density") +
+  annotate('text', x = 0.45, y = 0.5, label = 'a') +
+  annotate('text', x = 0.9, y = 0.35, label = 'b') +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
   scale_fill_continuous( type = "viridis" ) +
@@ -325,7 +331,7 @@ preddens_4.plot <- ggplot( data = preddens_pctNCE.df, aes( x = k ) ) +
 
 preddens.fig <- plot_grid( preddens_1.plot, preddens_4.plot, preddens_2.plot, preddens_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
-# ggsave("fig2.png", plot = preddens.fig, dpi = 300)
+ ggsave("fig2.png", plot = preddens.fig, dpi = 300)
 ```
 
 ```{r}
@@ -351,6 +357,7 @@ predmode_1.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
            color = "gray2", fill = "red", alpha = 0.5) +
   annotate( "text", x = preddens_optim + 0.05, y = preddens_optim_CE/2, 
             label = "CE = 0.32", hjust = "left", size = 7/.pt  ) +
+  annotate("text", x = 0.1, y = 0.05, label = "v = 0.2", size = 9/.pt ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Displacement Rate") +
@@ -384,6 +391,7 @@ predmode_2.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
            color = "gray2", fill = "red", alpha = 0.5) +
   annotate( "text", x = predmode_optim + 0.05, y = predmode_optim_CE/2, 
             label = "CE = 0.73", hjust = "left", size = 7/.pt  ) +
+  annotate("text", x = 0.1, y = 0.05, label = "v = 1.0", size = 9/.pt ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_colour_manual(name = "Curve", values = c("blue", "red")) +
@@ -418,6 +426,8 @@ predmode_3.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("% NCE Contribution to TPE") +
   xlab("Predator Velocity") +
+  annotate('text', x = 0.2, y = 0.5, label = 'a') +
+  annotate('text', x = 1, y = 0.17, label = 'b') +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
   scale_fill_continuous( type = "viridis" ) +
@@ -428,6 +438,8 @@ predmode_4.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Optimal RITR") +
   xlab("Predator Velocity") +
+  annotate('text', x = 0.2, y = 0.45, label = 'a') +
+  annotate('text', x = 1, y = 0.62, label = 'b') +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
   scale_fill_continuous( type = "viridis" ) +
@@ -440,7 +452,7 @@ predmode_4.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
 
 predmode.fig <- plot_grid( predmode_1.plot, predmode_4.plot, predmode_2.plot, predmode_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
-# ggsave("fig3.png", plot = predmode.fig, dpi = 300)
+ggsave("fig3.png", plot = predmode.fig, dpi = 300)
 ```
 
 
@@ -514,18 +526,19 @@ refuge_1.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
   annotate(geom = "rect", xmin = refuge_optim - 0.025, xmax = refuge_optim + 0.025, 
            ymin = 1 - refuge_optim_NCE, ymax = 0.998, 
            color = "gray2", fill = "lightblue", alpha = 0.5) +
-  annotate( "text", x = refuge_optim + 0.05, y = 1 - refuge_optim_NCE/2, 
+  annotate( "text", x = refuge_optim - 0.25, y = 1 - refuge_optim_NCE/2 + 0.035, 
             label = "NCE = 0.11", hjust = "left", size = 7/.pt  ) +
   annotate(geom = "rect", xmin = refuge_optim - 0.025, xmax = refuge_optim + 0.025,
            ymin = refuge_optim_CE, ymax = refuge_optim_CE + refuge_optim_fitness, 
            color = "gray2", fill = "lightgreen", alpha = 0.5) +
-  annotate( "text", x = refuge_optim + 0.1, y = refuge_optim_CE + refuge_optim_fitness/2, 
+  annotate( "text", x = refuge_optim - 0.2, y = refuge_optim_CE + refuge_optim_fitness/2, 
             label = "0.72", hjust = "left", size = 7/.pt  ) +
   annotate(geom = "rect", xmin = refuge_optim - 0.025, xmax = refuge_optim + 0.025, 
            ymin = 0.001, ymax = refuge_optim_CE, 
            color = "gray2", fill = "red", alpha = 0.5) +
-  annotate( "text", x = refuge_optim + 0.05, y = refuge_optim_CE/2, 
+  annotate( "text", x = refuge_optim - 0.25, y = refuge_optim_CE/2, 
             label = "CE = 0.17", hjust = "left", size = 7/.pt  ) +
+  annotate("text", x = 0.85, y = 0.95, label = "1/h = 0.1", size = 9/.pt ) +
   ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
@@ -555,6 +568,7 @@ refuge_2.plot <- ggplot( data = refuge2.df, aes( x = proptime ) ) +
            color = "gray2", fill = "red", alpha = 0.5) +
   annotate( "text", x = refuge_optim2 + 0.05, y = refuge_optim_CE2/2, 
             label = "CE = 0.35", hjust = "left", size = 7/.pt  ) +
+  annotate("text", x = 0.85, y = 0.95, label = "1/h = 0.5", size = 9/.pt ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
@@ -567,7 +581,7 @@ refuge_2.plot <- ggplot( data = refuge2.df, aes( x = proptime ) ) +
 
 # Plot % NPE of TPE and optimal RITR
 # Calculate change in NCE % of total predator effect, and optimal RITR, with decreasing h:
-h_vec <- seq( 10, 2, by = -0.1 )
+h_vec <- seq( 15, 1.5, by = -0.1 )
 prey_h_pctNCE.df <- as.data.frame(mat.or.vec( length(h_vec), 4 ) )
 colnames(prey_h_pctNCE.df) <- c("h", "NCE_TPE", "OptimalRITR", "Fitness")
 
@@ -606,6 +620,8 @@ refuge_3.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("% NCE Contribution to TPE") +
   xlab("Prey Resource Processing Rate (1/h)") +
+  annotate('text', x = 0.1, y = 0.475, label = 'a') +
+  annotate('text', x = 0.5, y = 0.2, label = 'b') +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
   scale_fill_continuous(type = "viridis" ) +
@@ -618,6 +634,8 @@ refuge_4.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Optimal RITR") +
   xlab("Prey Resource Processing Rate (1/h)") +
+  annotate('text', x = 0.1, y = 0.675, label = 'a') +
+  annotate('text', x = 0.5, y = 0.19, label = 'b') +
   scale_x_continuous(expand = c(0, 0) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1) ) +
   scale_fill_continuous(type = "viridis") +
