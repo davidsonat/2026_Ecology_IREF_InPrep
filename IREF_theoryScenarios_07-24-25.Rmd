@@ -331,7 +331,7 @@ preddens_4.plot <- ggplot( data = preddens_pctNCE.df, aes( x = k ) ) +
 
 preddens.fig <- plot_grid( preddens_1.plot, preddens_4.plot, preddens_2.plot, preddens_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
- ggsave("fig2.png", plot = preddens.fig, dpi = 300)
+# ggsave("fig2.png", plot = preddens.fig, dpi = 300)
 ```
 
 ```{r}
@@ -452,7 +452,7 @@ predmode_4.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
 
 predmode.fig <- plot_grid( predmode_1.plot, predmode_4.plot, predmode_2.plot, predmode_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
-ggsave("fig3.png", plot = predmode.fig, dpi = 300)
+# ggsave("fig3.png", plot = predmode.fig, dpi = 300)
 ```
 
 
@@ -470,7 +470,7 @@ refuge.df$proptime <- proptime_vec
 
 # Growth follows a Type II FR, where instead of speed we're manipulating resource density
 resource_vec <- seq(0, 1, by = 0.01) # This needs to be the same length as proptime_vec, here the refuge has ZERO resources
-refuge.df$growth_curve <- growth.curve(s = 1, R = resource_vec, h = 10)
+refuge.df$growth_curve <- (1 - refuge.df$proptime) * growth.curve(s = 1, R = 1, h = 0.9) + (refuge.df$proptime) * growth.curve(s = 1, R = 0.1, h = 0.9)
 refuge.df$growth_curve <- refuge.df$growth_curve * (1/max(refuge.df$growth_curve)) # Anchor at 1
 
 # Mortality curve, which linearly declines from val_A to val_B
@@ -646,7 +646,7 @@ refuge_4.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = intake ) ) +
 
 predmode.fig <- plot_grid( refuge_1.plot, refuge_4.plot, refuge_2.plot, refuge_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.5, align = c("hv") )
 
-ggsave("fig4.png", plot = predmode.fig, dpi = 300)
+# ggsave("fig4.png", plot = predmode.fig, dpi = 300)
 
 ```
 
