@@ -146,13 +146,13 @@ fig1_a.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   geom_line( aes( y = mort_curve, color = "Mortality" ), size = 1, linetype = "dashed" ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
-  xlab("Displacement Rate") +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  xlab("Trait Expression") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c("Low", "", "High") ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   annotate( "text", x = 0.25, y = 0.85, label = "Growth", size = 9/.pt  ) +
   annotate( "text", x = 0.5, y = 0.35, label = "Mortality", size = 9/.pt  ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
-  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom" ) + 
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom", plot.margin = margin(10, 15, 10, 10)) + 
   theme(legend.key = element_rect(fill = "white"), legend.text = element_text(color = "white"), legend.title = element_text(color = "white")) +
   guides(color = guide_legend(override.aes = list(color = NA)))
 
@@ -167,22 +167,23 @@ fig1_b.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
                color = NA, fill = "lightgreen", alpha = 0.5) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
-  xlab("Displacement Rate") +
+  xlab("Trait Expression") +
   annotate( "text", x = 0.5, y = 0.5, label = "Fitness = 1 - NCE - CE", size = 9/.pt  ) +
   annotate( "text", x = 0.5, y = 0.95, label = "NCE", size = 9/.pt  ) +
   annotate( "text", x = 0.5, y = 0.15, label = "CE", size = 9/.pt  ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c("Low", "", "High") ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         axis.title.y = element_blank(), legend.position = "bottom" )
+         axis.title.y = element_blank(), legend.position = "bottom",
+         plot.margin = margin(10, 15, 10, 10))
 
 fig1_c.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ), size = 1 ) +
   geom_line( aes( y = mort_curve, color = "Mortality" ), size = 1, linetype = "dashed" ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
-  xlab("Displacement Rate") +
+  xlab("Trait Expression") +
   annotate(geom = "rect", xmin = baseline_optim - 0.025, xmax = baseline_optim + 0.025, 
            ymin = 1 - baseline_optim_NCE, ymax = 0.998, 
            color = "gray2", fill = "lightblue", alpha = 0.5) +
@@ -198,11 +199,12 @@ fig1_c.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
            color = "gray2", fill = "red", alpha = 0.5) +
   annotate( "text", x = baseline_optim + 0.05, y = baseline_optim_CE/2 - 0.05, 
             label = "CE = 0.22", hjust = "left", size = 9/.pt  ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c("Low", "", "High") ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
-         axis.title.y = element_blank(), legend.position = "bottom" ) + 
+         axis.title.y = element_blank(), legend.position = "bottom",
+         plot.margin = margin(10, 15, 10, 10) ) + 
   theme(legend.key = element_rect(fill = "white"), legend.text = element_text(color = "white"), legend.title = element_text(color = "white")) +
   guides(color = guide_legend(override.aes = list(color = NA)))
 
@@ -682,8 +684,8 @@ temp_C_vec <- seq(20, 23, by = 0.03) # this has to be the same length as proptim
 therm_refuge.df$growth_curve <- (1 - therm_refuge.df$proptime) * growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 19 ) + (therm_refuge.df$proptime) * growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 22 )
 
 # Mortality curve
-mort_val_A <- 0.45 # Mortality outside the refuge during an hour
-mort_val_B <- 0.2 # Mortality inside the refuge during an hour
+mort_val_A <- 0.4 # Mortality outside the refuge during an hour
+mort_val_B <- 0 # Mortality inside the refuge during an hour
 therm_refuge.df$mort_curve <- ( 1 - therm_refuge.df$proptime ) * mort_val_A + ( therm_refuge.df$proptime) * mort_val_B
 
 
@@ -738,12 +740,12 @@ therm_refuge_1.plot <- ggplot( data = therm_refuge.df, aes( x = proptime ) ) +
            ymin = therm_refuge_optim_CE, ymax = therm_refuge_optim_CE + therm_refuge_optim_fitness, 
            color = "gray2", fill = "lightgreen", alpha = 0.5) +
   annotate( "text", x = therm_refuge_optim - 0.3, y = therm_refuge_optim_CE + therm_refuge_optim_fitness/2, 
-            label = "0.62", hjust = "left", size = 8/.pt  ) +
+            label = "0.82", hjust = "left", size = 8/.pt  ) +
   annotate(geom = "rect", xmin = therm_refuge_optim - 0.05, xmax = therm_refuge_optim, 
            ymin = 0.001, ymax = therm_refuge_optim_CE, 
            color = "gray2", fill = "red", alpha = 0.5) +
-  annotate( "text", x = therm_refuge_optim - 0.35, y = therm_refuge_optim_CE/2, 
-            label = "CE = 0.20", hjust = "left", size = 8/.pt  ) +
+  annotate( "text", x = therm_refuge_optim - 0.35, y = 0.05, 
+            label = "CE = 0", hjust = "left", size = 8/.pt  ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
@@ -771,8 +773,8 @@ therm_refuge2.df$growth_curve <- therm_refuge2.df$growth_curve * (1/ max(therm_r
 
 
 # Mortality curve
-mort_val_A <- 0.45 # Mortality outside the refuge during an hour
-mort_val_B <- 0.2 # Mortality inside the refuge during an hour
+mort_val_A <- 0.4 # Mortality outside the refuge during an hour
+mort_val_B <- 0 # Mortality inside the refuge during an hour
 
 # Weighted mean of risk during time spent outside refuge + risk during time spent inside refuge
 therm_refuge2.df$mort_curve <- ( 1 - therm_refuge2.df$proptime ) * mort_val_A + ( therm_refuge2.df$proptime ) * mort_val_B 
@@ -823,12 +825,12 @@ therm_refuge_2.plot <- ggplot( data = therm_refuge2.df, aes( x = proptime ) ) +
            ymin = therm_refuge_optim_CE2, ymax = therm_refuge_optim_CE2 + therm_refuge_optim_fitness2, 
            color = "gray2", fill = "lightgreen", alpha = 0.5) +
   annotate( "text", x = therm_refuge_optim2 + 0.15, y = therm_refuge_optim_CE2 + therm_refuge_optim_fitness2/2, 
-            label = "0.55", hjust = "left", size = 8/.pt  ) +
+            label = "0.6", hjust = "left", size = 8/.pt  ) +
   annotate(geom = "rect", xmin = therm_refuge_optim2, xmax = therm_refuge_optim2 + 0.05, 
            ymin = 0.001, ymax = therm_refuge_optim_CE2, 
            color = "gray2", fill = "red", alpha = 0.5) +
   annotate( "text", x = therm_refuge_optim2 + 0.1, y = therm_refuge_optim_CE2/2, 
-            label = "CE = 0.45", hjust = "left", size = 8/.pt  ) +
+            label = "CE = 0.4", hjust = "left", size = 8/.pt  ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
