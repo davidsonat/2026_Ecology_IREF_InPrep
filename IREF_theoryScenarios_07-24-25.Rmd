@@ -470,7 +470,7 @@ refuge.df$proptime <- proptime_vec
 
 # Growth follows a Type II FR, where instead of speed we're manipulating resource density
 resource_vec <- seq(0, 1, by = 0.01) # This needs to be the same length as proptime_vec, here the refuge has ZERO resources
-refuge.df$growth_curve <- (1 - refuge.df$proptime) * growth.curve(s = 1, R = 1, h = 0.9) + (refuge.df$proptime) * growth.curve(s = 1, R = 0.1, h = 0.9)
+refuge.df$growth_curve <- growth.curve(s = 1, R = resource_vec, h = 10)
 refuge.df$growth_curve <- refuge.df$growth_curve * (1/max(refuge.df$growth_curve)) # Anchor at 1
 
 # Mortality curve, which linearly declines from val_A to val_B
@@ -679,7 +679,7 @@ c_g.val <- 1/exp(1)
 
 # The growth curve will follow a temperature gradient along the prey's TPC
 temp_C_vec <- seq(20, 23, by = 0.03) # this has to be the same length as proptime
-therm_refuge.df$growth_curve <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = temp_C_vec )
+therm_refuge.df$growth_curve <- (1 - therm_refuge.df$proptime) * growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 19 ) + (therm_refuge.df$proptime) * growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 22 )
 
 # Mortality curve
 mort_val_A <- 0.45 # Mortality outside the refuge during an hour
@@ -706,8 +706,8 @@ tpc.df$performance <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = 
 
 tpc_labels.df <- as.data.frame( mat.or.vec ( 2, 2 ) )
 colnames(tpc_labels.df) <- c("temperature", "performance")
-tpc_labels.df$temperature <- c(20, 23)
-tpc_labels.df$performance <- c( 1, 0.637628152)
+tpc_labels.df$temperature <- c(19, 22)
+tpc_labels.df$performance <- c( 0.951229425, 0.818730753)
 
 tpc_1.plot <- ggplot(data = tpc.df, aes( x = temperature, y = performance ) ) +
   geom_line() + 
@@ -729,21 +729,21 @@ tpc_1.plot <- ggplot(data = tpc.df, aes( x = temperature, y = performance ) ) +
 therm_refuge_1.plot <- ggplot( data = therm_refuge.df, aes( x = proptime ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ) ) +
   geom_line( aes( y = mort_curve, color = "red" ), linetype = "dashed" ) +
-  annotate(geom = "rect", xmin = therm_refuge_optim - 0.025, xmax = therm_refuge_optim + 0.025, 
+  annotate(geom = "rect", xmin = therm_refuge_optim - 0.05, xmax = therm_refuge_optim, 
            ymin = 1 - therm_refuge_optim_NCE, ymax = 0.998, 
            color = "gray2", fill = "lightblue", alpha = 0.5) +
-  annotate( "text", x = therm_refuge_optim + 0.05, y = 0.975, 
-            label = "NCE = 0.04", hjust = "left", size = 8/.pt  ) +
-  annotate(geom = "rect", xmin = therm_refuge_optim - 0.025, xmax = therm_refuge_optim + 0.025,
+  annotate( "text", x = therm_refuge_optim - 0.35, y = 0.975, 
+            label = "NCE = 0.18", hjust = "left", size = 8/.pt  ) +
+  annotate(geom = "rect", xmin = therm_refuge_optim - 0.05, xmax = therm_refuge_optim,
            ymin = therm_refuge_optim_CE, ymax = therm_refuge_optim_CE + therm_refuge_optim_fitness, 
            color = "gray2", fill = "lightgreen", alpha = 0.5) +
-  annotate( "text", x = therm_refuge_optim + 0.1, y = therm_refuge_optim_CE + therm_refuge_optim_fitness/2, 
-            label = "0.59", hjust = "left", size = 8/.pt  ) +
-  annotate(geom = "rect", xmin = therm_refuge_optim - 0.025, xmax = therm_refuge_optim + 0.025, 
+  annotate( "text", x = therm_refuge_optim - 0.3, y = therm_refuge_optim_CE + therm_refuge_optim_fitness/2, 
+            label = "0.62", hjust = "left", size = 8/.pt  ) +
+  annotate(geom = "rect", xmin = therm_refuge_optim - 0.05, xmax = therm_refuge_optim, 
            ymin = 0.001, ymax = therm_refuge_optim_CE, 
            color = "gray2", fill = "red", alpha = 0.5) +
-  annotate( "text", x = therm_refuge_optim + 0.05, y = 0.05, 
-            label = "CE = 0.37", hjust = "left", size = 8/.pt  ) +
+  annotate( "text", x = therm_refuge_optim - 0.35, y = therm_refuge_optim_CE/2, 
+            label = "CE = 0.20", hjust = "left", size = 8/.pt  ) +
   theme_classic( base_size = 10, base_line_size = 1 ) + 
   ylab("Growth and Mortality") +
   xlab("Proportion of Time Spent in Refuge") +
@@ -765,8 +765,8 @@ colnames(therm_refuge2.df) <- c("proptime", "growth_curve", "mort_curve", "fitne
 therm_refuge2.df$proptime <- rev( proptime_vec )
 
 # The growth curve will follow a temperature gradient along the prey's TPC
-temp_C_vec <- seq(22.5, 25.5, by = 0.03) # this has to be the same length as proptime
-therm_refuge2.df$growth_curve <- growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = temp_C_vec )
+temp_C_vec <- seq(21.5, 24.5, by = 0.03) # this has to be the same length as proptime
+therm_refuge2.df$growth_curve <- (1 - therm_refuge.df$proptime) * growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 21.5 ) + (therm_refuge.df$proptime) * growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 24.5 )
 therm_refuge2.df$growth_curve <- therm_refuge2.df$growth_curve * (1/ max(therm_refuge2.df$growth_curve) )
 
 
@@ -791,8 +791,8 @@ therm_refuge_optim_NCE2 <- 1 - therm_refuge_optim_CE2 - therm_refuge_optim_fitne
 # Repeat TPC plot with new temperatures
 tpc_labels2.df <- as.data.frame( mat.or.vec ( 2, 2 ) )
 colnames(tpc_labels2.df) <- c("temperature", "performance")
-tpc_labels2.df$temperature <- c(22.5, 25.5)
-tpc_labels2.df$performance <- c( 0.731615629, 0.220358393)
+tpc_labels2.df$temperature <- c(21.5, 24.5)
+tpc_labels2.df$performance <- c( 0.893597347, 0.363309569)
 
 tpc_2.plot <- ggplot(data = tpc.df, aes( x = temperature, y = performance ) ) +
   geom_line() + 
