@@ -17,6 +17,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ```{r Figure 1: IREF General Example}
 baseline.df <- read.csv("1-1_displacement_baseline.csv")
+baseline_summary.df <- read.csv("1-4_displacement_summary.csv") # Find a way to read in the optimums from here
 
 fig1_a.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ), size = 1 ) +
@@ -89,16 +90,17 @@ fig1_c.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
 fig1.plot <- plot_grid( fig1_a.plot, fig1_b.plot, fig1_c.plot, ncol = 3, labels = "auto", label_y = 0.75, align = c("hv") )
 
 # ggsave("fig1.png", plot = fig1.plot, dpi = 300)
-
 ```
 
 
-
 ```{r Figure 2: Displacement Rate - Increasing Predator Density}
+preddens.df <- read.csv("1-2-1_displacement_preddens.csv")
+preddens_pctNCE.df <- read.csv("1-2-2_preddens_TPE_Opt.csv")
+
 # Fig. 2 - predator density
-preddens_1.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
+preddens_1.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ) ) +
-  geom_line( aes( y = mort_baseline, color = "Mortality" ), linetype = "dashed" ) +
+  geom_line( aes( y = mort_curve, color = "Mortality" ), linetype = "dashed" ) +
   annotate(geom = "rect", xmin = baseline_optim - 0.025, xmax = baseline_optim + 0.025, 
            ymin = 1 - baseline_optim_NCE, ymax = 0.998, 
            color = "gray2", fill = "lightblue", alpha = 0.5) +
@@ -190,6 +192,9 @@ preddens.fig <- plot_grid( preddens_1.plot, preddens_4.plot, preddens_2.plot, pr
 
 
 ```{r Figure 3: Displacement Rate - Predator Hunting Mode}
+predmode.df <- read.csv("1-3-1_displacement_predmode.csv")
+predmode_pctNCE.df <- read.csv("1-3-2_predmode_TPE_Opt.csv")
+
 predmode_1.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ) ) +
   geom_line( aes( y = mort_baseline, color = "Mortality" ), linetype = "dashed" ) +
@@ -285,6 +290,11 @@ predmode.fig <- plot_grid( predmode_1.plot, predmode_4.plot, predmode_2.plot, pr
 
 
 ```{r Figure 4: Refuge Use - Increasing Resource Processing Rate}
+refuge.df <- read.csv("2-1_refuge_res_base.csv")
+refuge2.df <- read.csv("2-2_refuge_res_fast_h.csv")
+prey_h_pctNCE.df <- read.csv("2-3_refuge_res_TPE_Opt.csv")
+refuge_summary.df <- read.csv("2-4_refuge_res_summary.csv") # See above
+
 refuge_1.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
   geom_line( aes( y = mort_curve, color = "Mortality" ), linetype = "dashed" ) +
   geom_line( aes( y = growth_curve, color = "Growth" ) ) +
@@ -379,6 +389,24 @@ predmode.fig <- plot_grid( refuge_1.plot, refuge_4.plot, refuge_2.plot, refuge_3
 
 
 ```{r}
+therm_refuge.df <- read.csv("3-1_refuge_therm_base.csv")
+therm_refuge2.df <- read.csv("3-2_refuge_therm_warmed.csv")
+therm_refuge_summary.df <- read.csv("3-3_refuge_therm_summary.csv") # See above
+
+
+## The growth-trait curve
+# a.growth determines the width of the performance curve and should be negative, so that the curve is concave down
+# h.growth determines the temperature at which prey growth peaks
+# c.growth is a scaling constant
+# temp_C is temperature in degrees Celsius
+growth.curve_warming <- function( c_g, a_g, h_g, temp_C ){
+  c_g * exp( a_g * ( ( temp_C - h_g )^2 ) + 1)
+}
+
+a_g.val <- -0.05 # Set a.growth to an arbitrary value that makes the curve broader than the predator's distribution; smaller values yield broader curves
+h_g.val <- 20 # Set h.growth to the same point that the predator's density peaks
+c_g.val <- 1/exp(1) # c.growth needs to be 1/e for this parameterization to peak at 1
+
 #Make a plot of the initial TPC
 temp_vec <- seq( 10, 26, by = 0.1 )
 tpc.df <- as.data.frame( mat.or.vec (length(temp_vec), 2) )
