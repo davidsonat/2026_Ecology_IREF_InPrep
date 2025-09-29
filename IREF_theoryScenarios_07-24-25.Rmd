@@ -476,8 +476,8 @@ predmode.fig <- plot_grid( predmode_1.plot, predmode_4.plot, predmode_2.plot, pr
 ## Derive the trait curves
 proptime_vec <- seq(1, 0, by = -0.01)
 
-refuge.df <- as.data.frame( mat.or.vec( length(proptime_vec), 5 ) ) 
-colnames(refuge.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+refuge.df <- as.data.frame( mat.or.vec( length(proptime_vec), 6 ) ) 
+colnames(refuge.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mu_g")
 refuge.df$proptime <- proptime_vec 
 
 # Growth follows a Type II FR, where instead of speed we're manipulating resource density
@@ -492,7 +492,8 @@ refuge.df$mort_curve <- ( 1 - refuge.df$proptime ) * mort_val_A + ( refuge.df$pr
 
 # Calculate fitness and relative strength of NCEs and CEs
 refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$mort_curve
-refuge.df$NCE_CE <- refuge.df$growth_curve / refuge.df$mort_curve
+refuge.df$NCE_CE <- (1 - refuge.df$growth_curve) / refuge.df$mort_curve
+refuge.df$mu_g <- refuge.df$mort_curve / refuge.df$growth_curve
 
 # Some other important metrics
 refuge_optim <- refuge.df$proptime[which(refuge.df$fitness == max(refuge.df$fitness))] # The level of refuge use (along x-axis) that fitness is optimized at
@@ -507,7 +508,7 @@ refuge_optim_NCE <- 1 - refuge_optim_CE - refuge_optim_fitness # The strength of
 ### Second round, lower h to 1
 ## Derive the trait curves
 refuge2.df <- as.data.frame( mat.or.vec( length(proptime_vec), 5 ) ) 
-colnames(refuge2.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+colnames(refuge2.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mu_g")
 refuge2.df$proptime <- proptime_vec 
 
 # Growth follows a Type II FR, where instead of speed we're manipulating resource density
@@ -520,7 +521,8 @@ refuge2.df$mort_curve <- ( 1 - refuge2.df$proptime ) * mort_val_A + ( refuge2.df
 
 # Calculate fitness and relative strength of NCEs and CEs
 refuge2.df$fitness <- 1 - ( 1 - refuge2.df$growth_curve ) - refuge2.df$mort_curve
-refuge2.df$NCE_CE <- refuge2.df$growth_curve / refuge2.df$mort_curve
+refuge2.df$NCE_CE <- ( 1 - refuge2.df$growth_curve ) / refuge2.df$mort_curve
+refuge2.df$mu_g <- refuge2.df$mort_curve / refuge2.df$growth_curve
 
 # Some other important metrics
 refuge_optim2 <- refuge2.df$proptime[which(refuge2.df$fitness == max(refuge2.df$fitness))] # The level of refuge use (along x-axis) that fitness is optimized at
@@ -666,8 +668,8 @@ predmode.fig <- plot_grid( refuge_1.plot, refuge_4.plot, refuge_2.plot, refuge_3
 
 ```{r}
 ## Derive the trait curves
-therm_refuge.df <- as.data.frame( mat.or.vec( length(proptime_vec), 5 ) ) 
-colnames(therm_refuge.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+therm_refuge.df <- as.data.frame( mat.or.vec( length(proptime_vec), 6 ) ) 
+colnames(therm_refuge.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mu_g")
 therm_refuge.df$proptime <- rev(proptime_vec)
 
 
@@ -702,6 +704,7 @@ therm_refuge.df$mort_curve <- ( 1 - therm_refuge.df$proptime ) * mort_val_A + ( 
 # Calculate fitness and relative strength of NCEs and CEs
 therm_refuge.df$fitness <- 1 - ( 1 - therm_refuge.df$growth_curve ) - therm_refuge.df$mort_curve
 therm_refuge.df$NCE_CE <- therm_refuge.df$growth_curve / therm_refuge.df$mort_curve
+therm_refuge.df$mu_g <- therm_refuge.df$mort_curve / therm_refuge.df$growth_curve
 
 # Some other important metrics
 therm_refuge_optim <- therm_refuge.df$proptime[which(therm_refuge.df$fitness == max(therm_refuge.df$fitness))] # The level of refuge use (along x-axis) that fitness is optimized at
@@ -772,8 +775,8 @@ therm_refuge_1.plot <- ggplot( data = therm_refuge.df, aes( x = proptime ) ) +
 # Vs. warmed scenario
 
 ## Derive the trait curves
-therm_refuge2.df <- as.data.frame( mat.or.vec( length(proptime_vec), 5 ) ) 
-colnames(therm_refuge2.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE")
+therm_refuge2.df <- as.data.frame( mat.or.vec( length(proptime_vec), 6 ) ) 
+colnames(therm_refuge2.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mu_g")
 therm_refuge2.df$proptime <- rev( proptime_vec )
 
 # The growth curve will follow a temperature gradient along the prey's TPC
@@ -792,6 +795,7 @@ therm_refuge2.df$mort_curve <- ( 1 - therm_refuge2.df$proptime ) * mort_val_A + 
 # Calculate fitness and relative strength of NCEs and CEs
 therm_refuge2.df$fitness <- 1 - ( 1 - therm_refuge2.df$growth_curve ) - therm_refuge2.df$mort_curve
 therm_refuge2.df$NCE_CE <- therm_refuge2.df$growth_curve / therm_refuge2.df$mort_curve
+therm_refuge2.df$mu_g <- therm_refuge2.df$mort_curve / therm_refuge2.df$growth_curve
 
 # Some other important metrics
 therm_refuge_optim2 <- therm_refuge2.df$proptime[which(therm_refuge2.df$fitness == max(therm_refuge2.df$fitness))] # The level of refuge use (along x-axis) that fitness is optimized at
@@ -908,7 +912,86 @@ fig1s_c.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red", "green" )) + 
   theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1, legend.position = "bottom" )
 
-supplement_fig <- plot_grid( fig1s_a.plot, fig1s_b.plot, fig1s_c.plot, ncol = 1, labels = "auto", label_x = 0.25, align = c("hv") )
+s1_fig <- plot_grid( fig1s_a.plot, fig1s_b.plot, fig1s_c.plot, ncol = 1, labels = "auto", label_x = 0.25, align = c("hv") )
 
-ggsave("fig1s.png", plot = supplement_fig, dpi = 300)
+# ggsave("figS1.png", plot = s1_fig, dpi = 300)
 ```
+
+```{r}
+# mu_g plots for habitat selection
+
+fig2s_a.plot <- ggplot( data = refuge.df, aes( x = proptime ) ) +
+  geom_line( aes( y = mort_curve, color = "Mortality" ), linetype = "dashed" ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ) ) +
+  geom_line( aes( y = mu_g, color = "mu_g" ) ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  annotate("text", x = 0.85, y = 0.95, label = "1/h = 0.1", size = 9/.pt ) +
+  ylab("Growth and Mortality") +
+  xlab("Prop. Time Spent in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red", "green" )) + 
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
+         axis.title.x = element_blank(),
+         axis.text.x = element_blank(), legend.position = "bottom" ) + 
+  theme(legend.key = element_rect(fill = "white"), legend.text = element_text(color = "white"), legend.title = element_text(color = "white")) +
+  guides(color = guide_legend(override.aes = list(color = NA)))
+
+
+fig2s_b.plot <- ggplot( data = refuge2.df, aes( x = proptime ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ) ) +
+  geom_line( aes( y = mort_curve, color = "Mortality" ), linetype = "dashed" ) +
+  geom_line( aes( y = mu_g, color = "mu_g" ) ) +
+  annotate("text", x = 0.85, y = 0.95, label = "1/h = 0.5", size = 9/.pt ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("") +
+  xlab("Prop. Time Spent in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red", "green" )) + 
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) +
+  theme( legend.position = "bottom" )
+
+s2_fig <- plot_grid( fig2s_a.plot, fig2s_b.plot, ncol = 1, labels = "auto", label_x = 0.25, align = c("hv") )
+
+# ggsave("figS2.png", plot = s2_fig, dpi = 300)
+
+
+# Plot of Unwarmed Scenario
+fig3s_a.plot <- ggplot( data = therm_refuge.df, aes( x = proptime ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ) ) +
+  geom_line( aes( y = mort_curve, color = "Mortality" ), linetype = "dashed" ) +
+  geom_line( aes( y = mu_g, color = "mu_g" ) ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  annotate("text", x = 0.85, y = 0.95, label = "T1", size = 9/.pt ) +
+  ylab("Growth and Mortality") +
+  xlab("Prop. Time Spent in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red", "green" )) + 
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1,
+         axis.title.x = element_blank(),
+         axis.text.x = element_blank(), legend.position = "bottom" ) + 
+  theme(legend.key = element_rect(fill = "white"), legend.text = element_text(color = "white"), legend.title = element_text(color = "white")) +
+  guides(color = guide_legend(override.aes = list(color = NA)))
+
+
+fig3s_b.plot <- ggplot( data = therm_refuge2.df, aes( x = proptime ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ) ) +
+  geom_line( aes( y = mort_curve, color = "Mortality" ), linetype = "dashed" ) +
+  geom_line( aes( y = mu_g, color = "mu_g" ) ) +
+  annotate("text", x = 0.85, y = 0.95, label = "T2", size = 9/.pt ) +
+  theme_classic( base_size = 10, base_line_size = 1 ) + 
+  ylab("Growth and Mortality") +
+  xlab("Prop. Time Spent in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red", "green" )) + 
+  theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1) +
+  theme( legend.position = "bottom" )
+
+s3_fig <- plot_grid( fig3s_a.plot, fig3s_b.plot, ncol = 1, labels = "auto", label_x = 0.25, align = c("hv") )
+
+# ggsave("figS3.png", plot = s3_fig, dpi = 300)
+```
+
