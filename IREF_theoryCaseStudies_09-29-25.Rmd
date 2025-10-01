@@ -214,7 +214,7 @@ predmode_pctNCE.df[i, 4] <- max(pm_fitness)
 # Export the six data sets
 write.csv(baseline.df, "1-1_displacement_baseline.csv.csv", row.names = FALSE)
 write.csv(preddens.df, "1-2-1_displacement_preddens.csv", row.names = FALSE)
-write.csv(predmode_pctNCE.df, "1-2-2_preddens_TPE_Opt.csv", row.names = FALSE)
+write.csv(preddens_pctNCE.df, "1-2-2_preddens_TPE_Opt.csv", row.names = FALSE)
 write.csv(predmode.df, "1-3-1_displacement_predmode.csv", row.names = FALSE)
 write.csv(predmode_pctNCE.df, "1-3-2_predmode_TPE_Opt.csv", row.names = FALSE)
 write.csv(displacement_summary.df, "1-4_displacement_summary.csv", row.names = FALSE)
