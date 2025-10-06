@@ -735,9 +735,21 @@ s3_fig <- plot_grid( fig3s_a.plot, fig3s_b.plot, ncol = 1, labels = "auto", labe
 
 ```{r}
 # Plot optimal RITR vs. predator density, show lines for b - d and mu/g
-predmode_mug.df <- read.csv("1-5_predmode_mug.csv")
+preddens_mug.df <- read.csv("1-5-1_preddens_mug.csv")
+predmode_mug.df <- read.csv("1-5-2_predmode_mug.csv")
 
-fig4s.plot <- ggplot( data = predmode_mug.df, aes( x = v ) ) +
+fig4s_a.plot <- ggplot( data = preddens_mug.df, aes( x = k ) ) +
+  geom_line( data = preddens_pctNCE.df, aes( y = OptimalRITR, color = "b - d" ) ) +
+  geom_line( data = preddens_mug.df, aes( y = OptimalRITR, color = "mu_g" ) ) +
+  ylab("Optimal RITR") +
+  xlab("Predator Density") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  guides(color = "none")
+
+fig4s_b.plot <- ggplot( data = predmode_mug.df, aes( x = v ) ) +
   geom_line( data = predmode_pctNCE.df, aes( y = OptimalRITR, color = "b - d" ) ) +
   geom_line( data = predmode_mug.df, aes( y = OptimalRITR, color = "mu_g" ) ) +
   ylab("Optimal RITR") +
@@ -745,8 +757,11 @@ fig4s.plot <- ggplot( data = predmode_mug.df, aes( x = v ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual(name = "Curve", values = c( "blue", "red", "green" )) + 
+  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
   theme( legend.position = "bottom" )
 
-ggsave("figS4.png", plot = fig4s.plot, dpi = 300)
+s4_fig <- plot_grid( fig4s_a.plot, fig4s_b.plot, ncol = 1, labels = "auto", label_x = 0.25, align = c("hv") )
+
+
+ggsave("figS4.png", plot = s4_fig, dpi = 300)
 ```

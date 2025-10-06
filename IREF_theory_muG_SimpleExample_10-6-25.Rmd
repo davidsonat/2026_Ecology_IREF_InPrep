@@ -1,0 +1,38 @@
+---
+title: "mu over g madness"
+author: "Andy"
+date: "2025-10-06"
+output: pdf_document
+---
+
+```{r}
+# If both curves are linear, there will be no intermediate solutions for mu/g OR b - d
+# Hold growth slope constant, and intercepts constant
+growth_slope <- -0.15
+growth_int <- 1
+mort_int <- 0.4
+trait_vec <- seq(0, 1, by = 0.01)
+growth_line <- growth_slope * trait_vec + growth_int
+mort_slope <- seq(-0.4, 0, by = 0.005)
+
+mu_g.df <- as.data.frame(mat.or.vec( length(mort_slope), 3 ) )
+colnames(mu_g.df) <- c("mort_slope", "bd_optim", "mu_g_optim")
+
+for (i in 1:length( mort_slope ) ){
+  mu_g.df[ i, 1 ] <- mort_slope[i]
+  
+  mort_line <- mort_slope[i] * trait_vec + mort_int
+  bd_optim_val <- growth_line - mort_line
+  mu_g_optim_val <- mort_line / growth_line
+  mu_g.df[ i, 2 ] <- trait_vec[ which.max( bd_optim_val ) ]
+  mu_g.df[ i, 3 ] <- trait_vec[ which.min( mu_g_optim_val ) ]
+}
+
+# They work out exactly the same but the inverse of one another
+plot( x = mort_slope, y = mu_g.df$bd_optim) 
+# Exhibit full response until mortality slope is smaller (more negative) than growth slope 
+# I.e., reduction in mortality > reduction in growth
+plot( x = mort_slope, y = mu_g.df$mu_g_optim) 
+# Exhibit full response until mu/g at zero trait expression exceeds mu/g at full trait expression
+# I.e., qualitatively similar but the switchpoint is in a different place
+```
