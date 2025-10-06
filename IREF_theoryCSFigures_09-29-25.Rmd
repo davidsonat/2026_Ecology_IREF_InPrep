@@ -319,7 +319,7 @@ predmode_4.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
 
 predmode.fig <- plot_grid( predmode_1.plot, predmode_4.plot, predmode_2.plot, predmode_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.75, align = c("hv") )
 
-ggsave("fig3.png", plot = predmode.fig, dpi = 300)
+# ggsave("fig3.png", plot = predmode.fig, dpi = 300)
 ```
 
 
@@ -441,7 +441,7 @@ refuge_4.plot <- ggplot( data = prey_h_pctNCE.df, aes( x = inverse_h ) ) +
 
 predmode.fig <- plot_grid( refuge_1.plot, refuge_4.plot, refuge_2.plot, refuge_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.75, align = c("hv") )
 
-ggsave("fig4.png", plot = predmode.fig, dpi = 300)
+# ggsave("fig4.png", plot = predmode.fig, dpi = 300)
 ```
 
 
@@ -518,8 +518,8 @@ therm_refuge_1.plot <- ggplot( data = therm_refuge.df, aes( x = proptime ) ) +
   NCE_label + fitness_label + 
   ylab("Growth and Mortality") +
   xlab("Prop. Time in Refuge") +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
   theme( axis.title.x = element_blank(),
@@ -582,8 +582,8 @@ therm_refuge_2.plot <- ggplot( data = therm_refuge2.df, aes( x = proptime ) ) +
   CE_label + fitness_label + 
   ylab("Growth and Mortality") +
   xlab("Prop. Time in Refuge") +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
   theme( legend.position = "bottom" )
@@ -731,4 +731,22 @@ fig3s_b.plot <- ggplot( data = therm_refuge2.df, aes( x = proptime ) ) +
 s3_fig <- plot_grid( fig3s_a.plot, fig3s_b.plot, ncol = 1, labels = "auto", label_x = 0.25, align = c("hv") )
 
 # ggsave("figS3.png", plot = s3_fig, dpi = 300)
+```
+
+```{r}
+# Plot optimal RITR vs. predator density, show lines for b - d and mu/g
+predmode_mug.df <- read.csv("1-5_predmode_mug.csv")
+
+fig4s.plot <- ggplot( data = predmode_mug.df, aes( x = v ) ) +
+  geom_line( data = predmode_pctNCE.df, aes( y = OptimalRITR, color = "b - d" ) ) +
+  geom_line( data = predmode_mug.df, aes( y = OptimalRITR, color = "mu_g" ) ) +
+  ylab("Optimal RITR") +
+  xlab("Predator Velocity") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red", "green" )) + 
+  theme( legend.position = "bottom" )
+
+ggsave("figS4.png", plot = fig4s.plot, dpi = 300)
 ```

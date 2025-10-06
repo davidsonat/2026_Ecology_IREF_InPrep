@@ -183,8 +183,28 @@ preddens_pctNCE.df[i, 3] <- speed.vec[ which.max(pd_fitness) ]
 preddens_pctNCE.df[i, 4] <- max(pd_fitness)
 }
 
-# Drop NaN from first row
-preddens_pctNCE.df[1, 2] <- 0
+
+# Repeat for mu/g
+k_vec <- seq( 0, 2.5, by = 0.05 )
+preddens_pctNCE_mug.df <- as.data.frame(mat.or.vec( length(k_vec), 4 ) ) 
+colnames(preddens_pctNCE_mug.df) <- c("k", "NCE_TPE", "OptimalRITR", "Fitness")
+
+for (i in 1:length( k_vec ) ){
+preddens_pctNCE_mug.df[i, 1] <- k_vec[i]
+
+pd_growth_curve <- cost_constant_val * growth.curve( s = speed.vec, R = 1, h = 8 ) # Growth curve
+pd_mort_curve <- pred_constant_val * pred.curve( k = k_vec[i], v = 0.2, s = speed.vec ) # Mortality curve
+pd_fitness <- pd_mort_curve / pd_growth_curve # fitness
+pd_NCE_TPE <- (1 - pd_growth_curve)/(pd_mort_curve + (1 - pd_growth_curve))# NCE/TPE
+
+preddens_pctNCE_mug.df[i, 2] <- pd_NCE_TPE[ which.min(pd_fitness) ]
+
+# Some other important metrics
+preddens_pctNCE_mug.df[i, 3] <- speed.vec[ which.min(pd_fitness) ]
+preddens_pctNCE_mug.df[i, 4] <- min(pd_fitness)
+}
+# This is completely flat
+
 
 
 # For predator foraging mode:
@@ -207,6 +227,28 @@ predmode_pctNCE.df[i, 2] <- pm_NCE_TPE[ which.max(pm_fitness) ]
 predmode_pctNCE.df[i, 3] <- speed.vec[ which.max(pm_fitness) ]
 predmode_pctNCE.df[i, 4] <- max(pm_fitness)
 }
+
+# Repeat for mu/g
+v_vec <- seq( 0, 2.5, by = 0.05 )
+predmode_pctNCE_mug.df <- as.data.frame(mat.or.vec( length(v_vec), 4 ) )
+pred_constant_val <- 0.7071068 * 0.8999994 # this changes to anchor the mortality curve in the same spot
+colnames(predmode_pctNCE_mug.df) <- c("v", "NCE_TPE", "OptimalRITR", "Fitness")
+
+for (i in 1:length( v_vec ) ){
+predmode_pctNCE_mug.df[i, 1] <- v_vec[i]
+
+pm_growth_curve <- cost_constant_val * growth.curve( s = speed.vec, R = 1, h = 8 ) # Growth curve
+pm_mort_curve <- pred_constant_val * pred.curve( k = 1, v = v_vec[i], s = speed.vec ) # Mortality curve
+pm_fitness <-  pm_mort_curve / pm_growth_curve # fitness
+pm_NCE_TPE <- (1 - pm_growth_curve)/(pm_mort_curve + (1 - pm_growth_curve))# NCE/TPE
+
+predmode_pctNCE_mug.df[i, 2] <- pm_NCE_TPE[ which.min(pm_fitness) ]
+
+# Some other important metrics
+predmode_pctNCE_mug.df[i, 3] <- speed.vec[ which.min(pm_fitness) ]
+predmode_pctNCE_mug.df[i, 4] <- min(pm_fitness)
+}
+
 ```
 
 
@@ -218,6 +260,8 @@ write.csv(preddens_pctNCE.df, "1-2-2_preddens_TPE_Opt.csv", row.names = FALSE)
 write.csv(predmode.df, "1-3-1_displacement_predmode.csv", row.names = FALSE)
 write.csv(predmode_pctNCE.df, "1-3-2_predmode_TPE_Opt.csv", row.names = FALSE)
 write.csv(displacement_summary.df, "1-4_displacement_summary.csv", row.names = FALSE)
+write.csv(preddens_pctNCE_mug.df, "1-5-1_preddens_mug.csv", row.names = FALSE)
+write.csv(predmode_pctNCE_mug.df, "1-5-2_predmode_mug.csv", row.names = FALSE)
 ```
 
 
