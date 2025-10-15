@@ -1,5 +1,5 @@
 ---
-title: "mu over g madness"
+title: "mu/g"
 author: "Andy"
 date: "2025-10-06"
 output: pdf_document
@@ -35,4 +35,7 @@ plot( x = mort_slope, y = mu_g.df$bd_optim)
 plot( x = mort_slope, y = mu_g.df$mu_g_optim) 
 # Exhibit full response until mu/g at zero trait expression exceeds mu/g at full trait expression
 # I.e., qualitatively similar but the switchpoint is in a different place
+
+# This suggests that the weird finding about the strategy not changing with density is because the ratio at is just naturally always going to be smallest in that spot.. which is a property of the curve shapes themselves I suspect
+# I.e., if the g
 ```

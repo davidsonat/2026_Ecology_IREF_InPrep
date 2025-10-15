@@ -166,6 +166,7 @@ displacement_summary.df[3, 8] <-
 # For predator density:
 k_vec <- seq( 0, 2.5, by = 0.05 )
 preddens_pctNCE.df <- as.data.frame(mat.or.vec( length(k_vec), 4 ) ) 
+pred_constant_val <- 0.98058
 colnames(preddens_pctNCE.df) <- c("k", "NCE_TPE", "OptimalRITR", "Fitness")
 
 for (i in 1:length( k_vec ) ){
@@ -205,6 +206,44 @@ preddens_pctNCE_mug.df[i, 4] <- min(pd_fitness)
 }
 # This is completely flat
 
+
+# # A closer look at mu/g
+# k_vec <- seq( 0, 0.05, by = 0.005 )
+# preddens_pctNCE_mug2.df <- as.data.frame(mat.or.vec( length(k_vec), 5 ) ) 
+# pred_constant_val <- 0.98058
+# colnames(preddens_pctNCE_mug2.df) <- c("k", "s", "growth", "mortality", "mug")
+# row <- 0
+# 
+# for (i in 1:length( k_vec ) ){
+#   for (j in 1:length( speed.vec ) ){
+#     row <- row + 1
+#     preddens_pctNCE_mug2.df[row, 1] <- k_vec[i]
+#     preddens_pctNCE_mug2.df[row, 2] <- speed.vec[j]
+#     preddens_pctNCE_mug2.df[row, 3] <- cost_constant_val * growth.curve( s = speed.vec[j], R = 1, h = 8 ) # Growth curve
+#     preddens_pctNCE_mug2.df[row, 4] <- pred_constant_val * pred.curve( k = k_vec[i], v = 0.2, s = speed.vec[j] ) # Mortality curve
+#     preddens_pctNCE_mug2.df[row, 5] <-  preddens_pctNCE_mug2.df[row, 4] / preddens_pctNCE_mug2.df[row, 3] # mu/g
+#     }
+# }
+# 
+# library(dplyr)
+# df1 <- preddens_pctNCE_mug2.df %>%
+#   group_by(k) %>%
+#   summarise(min.mug = s[which.min( mug ) ] )
+# 
+# plot1 <- ggplot( data = preddens_pctNCE_mug2.df, aes( x = s ) ) +
+#   geom_line( aes( y = growth, color = "Growth" ), linewidth = 1 ) +
+#   geom_line( aes( y = mortality, color = "Mortality" ), linewidth = 1, linetype = "dashed" ) +
+#   geom_line( aes( y = mug, color = "mu/g" ), linewidth = 1 ) +
+#   geom_vline(data = df1, aes( xintercept = min.mug ), color = "green", linetype = "dashed" ) +
+#   ylab("Growth and Mortality") +
+#   xlab("Displacement Rate") +
+#   scale_x_reverse( expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 500, 1000) ) +
+#   scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
+#   coord_cartesian( xlim = c(1, 0), ylim = c(0, 1) ) +
+#   scale_color_manual( name = "Curve", values = c( "blue", "red", "green" ) ) + 
+#   facet_wrap(~ k)
+# 
+# ggsave("density_mug_facet.png", plot = plot1, dpi = 300)
 
 
 # For predator foraging mode:

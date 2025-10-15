@@ -763,5 +763,5 @@ fig4s_b.plot <- ggplot( data = predmode_mug.df, aes( x = v ) ) +
 s4_fig <- plot_grid( fig4s_a.plot, fig4s_b.plot, ncol = 1, labels = "auto", label_x = 0.25, align = c("hv") )
 
 
-ggsave("figS4.png", plot = s4_fig, dpi = 300)
+# ggsave("figS4.png", plot = s4_fig, dpi = 300)
 ```
