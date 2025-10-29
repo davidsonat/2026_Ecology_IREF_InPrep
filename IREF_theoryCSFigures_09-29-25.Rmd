@@ -613,6 +613,8 @@ fig1s_a.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  annotate("text", x = 0.05, y = 0.2, label = "P = 0.45", hjust = 0, size = annot_size ) +
+  annotate("text", x = 0.05, y = 0.1, label = "v = 0.2", hjust = 0, size = annot_size ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red", "green" )) + 
   theme( axis.title.x = element_blank(),
          axis.text.x = element_blank(), legend.position = "bottom" ) + 
@@ -631,7 +633,8 @@ fig1s_b.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  annotate("text", x = 0.2, y = 0.1, label = "P = 0.9", size = annot_size ) +
+  annotate("text", x = 0.05, y = 0.2, label = "P = 0.9", hjust = 0, size = annot_size ) +
+  annotate("text", x = 0.05, y = 0.1, label = "v = 0.2", hjust = 0, size = annot_size ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red", "green" )) + 
   theme( axis.title.x = element_blank(),
          axis.text.x = element_blank(), legend.position = "bottom" ) + 
@@ -650,13 +653,14 @@ fig1s_c.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 1) ) + 
   scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  annotate("text", x = 0.2, y = 0.1, label = "v = 1", size = annot_size ) +
+  annotate("text", x = 0.05, y = 0.2, label = "P = 0.9", hjust = 0, size = annot_size ) +
+  annotate("text", x = 0.05, y = 0.1, label = "v = 1.0", hjust = 0, size = annot_size ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red", "green" )) + 
   theme( legend.position = "bottom" )
 
 s1_fig <- plot_grid( fig1s_a.plot, fig1s_b.plot, fig1s_c.plot, ncol = 1, labels = "auto", label_x = 0.35, align = c("hv") )
 
-# ggsave("figS1.png", plot = s1_fig, dpi = 300)
+ggsave("figS1.png", plot = s1_fig, dpi = 300)
 
 
 
@@ -739,24 +743,24 @@ preddens_mug.df <- read.csv("1-5-1_preddens_mug.csv")
 predmode_mug.df <- read.csv("1-5-2_predmode_mug.csv")
 
 fig4s_a.plot <- ggplot( data = preddens_mug.df, aes( x = k ) ) +
-  geom_line( data = preddens_pctNCE.df, aes( y = OptimalRITR, color = "b - d" ) ) +
-  geom_line( data = preddens_mug.df, aes( y = OptimalRITR, color = "mu_g" ) ) +
+  geom_point( data = preddens_pctNCE.df, aes( y = OptimalRITR, color = "b - d" ) ) +
+  geom_point( data = preddens_mug.df, aes( y = OptimalRITR, color = "mu_g" ) ) +
   ylab("Optimal RITR") +
   xlab("Predator Density") +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1.1) ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
   guides(color = "none")
 
 fig4s_b.plot <- ggplot( data = predmode_mug.df, aes( x = v ) ) +
-  geom_line( data = predmode_pctNCE.df, aes( y = OptimalRITR, color = "b - d" ) ) +
-  geom_line( data = predmode_mug.df, aes( y = OptimalRITR, color = "mu_g" ) ) +
+  geom_point( data = predmode_pctNCE.df, aes( y = OptimalRITR, color = "b - d" ) ) +
+  geom_point( data = predmode_mug.df, aes( y = OptimalRITR, color = "mu_g" ) ) +
   ylab("Optimal RITR") +
   xlab("Predator Velocity") +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.5, 1) ) +
-  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1.1) ) +
   scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
   theme( legend.position = "bottom" )
 
