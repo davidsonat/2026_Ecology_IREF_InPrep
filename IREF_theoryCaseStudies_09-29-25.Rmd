@@ -66,7 +66,7 @@ growth.curve <- function(s, R, h){
 
 ## 1) This is the baseline scenario
 baseline.df <- as.data.frame( mat.or.vec( length( speed.vec ), 7) )
-colnames(baseline.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mu_g")
+colnames(baseline.df) <- c("trait", "speed", "growth_curve", "pred_curve", "fitness", "NCE_CE", "mu_g")
 baseline.df$trait <- trait.vec
 baseline.df$speed <- speed.vec
 h_val <- 8
@@ -77,31 +77,31 @@ k_val <- 0.45
 pred_constant_val <- 0.98058
 
 baseline.df$growth_curve <- cost_constant_val * growth.curve( s = baseline.df$speed, R = R_val, h = h_val ) # Growth curve
-baseline.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = baseline.df$speed ) # Mortality curve
-baseline.df$fitness <- baseline.df$growth_curve - baseline.df$mort_curve # fitness
-baseline.df$NCE_CE <- (1 - baseline.df$growth_curve)/baseline.df$mort_curve # NCE/CE
-baseline.df$mu_g <- baseline.df$mort_curve/baseline.df$growth_curve # mu/g
+baseline.df$pred_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = baseline.df$speed ) # Mortality curve
+baseline.df$fitness <- baseline.df$growth_curve - baseline.df$pred_curve # fitness
+baseline.df$NCE_CE <- (1 - baseline.df$growth_curve)/baseline.df$pred_curve # NCE/CE
+baseline.df$mu_g <- baseline.df$pred_curve/baseline.df$growth_curve # mu/g
 
 
 
 ## 2) Change predator density by increasing k
 preddens.df <- as.data.frame( mat.or.vec( length( speed.vec ), 7) )
-colnames(preddens.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mu_g")
+colnames(preddens.df) <- c("trait", "speed", "growth_curve", "pred_curve", "fitness", "NCE_CE", "mu_g")
 preddens.df$trait <- trait.vec
 preddens.df$speed <- speed.vec
 k_val <- 0.9 
 
 preddens.df$growth_curve <- cost_constant_val * growth.curve( s = preddens.df$speed, R = R_val, h = h_val ) # Growth curve
-preddens.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = preddens.df$speed ) # Mortality curve
-preddens.df$fitness <- preddens.df$growth_curve - preddens.df$mort_curve # fitness
-preddens.df$NCE_CE <- (1 - preddens.df$growth_curve)/preddens.df$mort_curve # NCE/CE
-preddens.df$mu_g <- preddens.df$mort_curve/preddens.df$growth_curve # mu/g
+preddens.df$pred_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = preddens.df$speed ) # Mortality curve
+preddens.df$fitness <- preddens.df$growth_curve - preddens.df$pred_curve # fitness
+preddens.df$NCE_CE <- (1 - preddens.df$growth_curve)/preddens.df$pred_curve # NCE/CE
+preddens.df$mu_g <- preddens.df$pred_curve/preddens.df$growth_curve # mu/g
 
 
 
 ## 3) Change predator foraging mode from a sit-and-wait to active predator by increasing v
 predmode.df <- as.data.frame( mat.or.vec( length( speed.vec ), 7) )
-colnames(predmode.df) <- c("trait", "speed", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mu_g")
+colnames(predmode.df) <- c("trait", "speed", "growth_curve", "pred_curve", "fitness", "NCE_CE", "mu_g")
 predmode.df$trait <- trait.vec
 predmode.df$speed <- speed.vec
 v_val <- 1
@@ -109,10 +109,10 @@ pred_constant_val <- 0.7071063
 
 
 predmode.df$growth_curve <- cost_constant_val * growth.curve( s = predmode.df$speed, R = R_val, h = h_val ) # Growth curve
-predmode.df$mort_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = predmode.df$speed ) # Mortality curve
-predmode.df$fitness <- predmode.df$growth_curve - predmode.df$mort_curve # fitness
-predmode.df$NCE_CE <- (1 - predmode.df$growth_curve)/predmode.df$mort_curve # NCE/CE
-predmode.df$mu_g <- predmode.df$mort_curve/predmode.df$growth_curve # mu/g
+predmode.df$pred_curve <- pred_constant_val * pred.curve( k = k_val, v = v_val, s = predmode.df$speed ) # Mortality curve
+predmode.df$fitness <- predmode.df$growth_curve - predmode.df$pred_curve # fitness
+predmode.df$NCE_CE <- (1 - predmode.df$growth_curve)/predmode.df$pred_curve # NCE/CE
+predmode.df$mu_g <- predmode.df$pred_curve/predmode.df$growth_curve # mu/g
 
 
 
@@ -130,7 +130,7 @@ displacement_summary.df[1, 4] <-
 displacement_summary.df[1, 5] <- 
   baseline.df$fitness[which(baseline.df$fitness == max(baseline.df$fitness))] # Fitness at optimum
 displacement_summary.df[1, 6] <- 
-  baseline.df$mort_curve[which(baseline.df$fitness == max(baseline.df$fitness))] # CE strength at optimum
+  baseline.df$pred_curve[which(baseline.df$fitness == max(baseline.df$fitness))] # CE strength at optimum
 displacement_summary.df[1, 7] <- 
   1 - displacement_summary.df[1, 6] - displacement_summary.df[1, 5] # NCE strength at optimum
 displacement_summary.df[1, 8] <- 
@@ -142,7 +142,7 @@ displacement_summary.df[2, 4] <-
 displacement_summary.df[2, 5] <- 
   preddens.df$fitness[which(preddens.df$fitness == max(preddens.df$fitness))] # Fitness at optimum
 displacement_summary.df[2, 6] <- 
-  preddens.df$mort_curve[which(preddens.df$fitness == max(preddens.df$fitness))] # CE strength at optimum
+  preddens.df$pred_curve[which(preddens.df$fitness == max(preddens.df$fitness))] # CE strength at optimum
 displacement_summary.df[2, 7] <- 
   1 - displacement_summary.df[2, 6] - displacement_summary.df[2, 5] # NCE strength at optimum
 displacement_summary.df[2, 8] <- 
@@ -154,7 +154,7 @@ displacement_summary.df[3, 4] <-
 displacement_summary.df[3, 5] <- 
   predmode.df$fitness[which(predmode.df$fitness == max(predmode.df$fitness))] # Fitness at optimum
 displacement_summary.df[3, 6] <- 
-  predmode.df$mort_curve[which(predmode.df$fitness == max(predmode.df$fitness))] # CE strength at optimum
+  predmode.df$pred_curve[which(predmode.df$fitness == max(predmode.df$fitness))] # CE strength at optimum
 displacement_summary.df[3, 7] <-  
   1 - displacement_summary.df[3, 6] - displacement_summary.df[3, 5] # NCE strength at optimum
 displacement_summary.df[3, 8] <- 
@@ -165,23 +165,25 @@ displacement_summary.df[3, 8] <-
 ## 5) Calculate change in NCE % of total predator effect, and optimal RITR, with increasing k and v:
 # For predator density:
 k_vec <- seq( 0, 2.5, by = 0.05 )
-preddens_pctNCE.df <- as.data.frame(mat.or.vec( length(k_vec), 4 ) ) 
+preddens_pctNCE.df <- as.data.frame(mat.or.vec( length(k_vec), 6 ) ) 
 pred_constant_val <- 0.98058
-colnames(preddens_pctNCE.df) <- c("k", "NCE_TPE", "OptimalRITR", "Fitness")
+colnames(preddens_pctNCE.df) <- c("k", "NCE", "CE", "NCE_TPE", "OptimalRITR", "Fitness")
 
 for (i in 1:length( k_vec ) ){
 preddens_pctNCE.df[i, 1] <- k_vec[i]
 
 pd_growth_curve <- cost_constant_val * growth.curve( s = speed.vec, R = 1, h = 8 ) # Growth curve
-pd_mort_curve <- pred_constant_val * pred.curve( k = k_vec[i], v = 0.2, s = speed.vec ) # Mortality curve
-pd_fitness <- pd_growth_curve - pd_mort_curve # fitness
-pd_NCE_TPE <- (1 - pd_growth_curve)/(pd_mort_curve + (1 - pd_growth_curve))# NCE/TPE
+pd_pred_curve <- pred_constant_val * pred.curve( k = k_vec[i], v = 0.2, s = speed.vec ) # Mortality curve
+pd_fitness <- pd_growth_curve - pd_pred_curve # fitness
+pd_NCE_TPE <- (1 - pd_growth_curve)/(pd_pred_curve + (1 - pd_growth_curve))# NCE/TPE
 
-preddens_pctNCE.df[i, 2] <- pd_NCE_TPE[ which.max(pd_fitness) ]
+preddens_pctNCE.df[i, 2] <- 1 - pd_growth_curve[ which.max( pd_fitness ) ]
+preddens_pctNCE.df[i, 3] <- pd_pred_curve[ which.max( pd_fitness ) ]
+preddens_pctNCE.df[i, 4] <- pd_NCE_TPE[ which.max(pd_fitness) ]
 
 # Some other important metrics
-preddens_pctNCE.df[i, 3] <- speed.vec[ which.max(pd_fitness) ]
-preddens_pctNCE.df[i, 4] <- max(pd_fitness)
+preddens_pctNCE.df[i, 5] <- speed.vec[ which.max(pd_fitness) ]
+preddens_pctNCE.df[i, 6] <- max(pd_fitness)
 }
 
 
@@ -194,9 +196,9 @@ for (i in 1:length( k_vec ) ){
 preddens_pctNCE_mug.df[i, 1] <- k_vec[i]
 
 pd_growth_curve <- cost_constant_val * growth.curve( s = speed.vec, R = 1, h = 8 ) # Growth curve
-pd_mort_curve <- pred_constant_val * pred.curve( k = k_vec[i], v = 0.2, s = speed.vec ) # Mortality curve
-pd_fitness <- pd_mort_curve / pd_growth_curve # fitness
-pd_NCE_TPE <- (1 - pd_growth_curve)/(pd_mort_curve + (1 - pd_growth_curve))# NCE/TPE
+pd_pred_curve <- pred_constant_val * pred.curve( k = k_vec[i], v = 0.2, s = speed.vec ) # Mortality curve
+pd_fitness <- pd_pred_curve / pd_growth_curve # fitness
+pd_NCE_TPE <- (1 - pd_growth_curve)/(pd_pred_curve + (1 - pd_growth_curve))# NCE/TPE
 
 preddens_pctNCE_mug.df[i, 2] <- pd_NCE_TPE[ which.min(pd_fitness) ]
 
@@ -248,23 +250,25 @@ preddens_pctNCE_mug.df[i, 4] <- min(pd_fitness)
 
 # For predator foraging mode:
 v_vec <- seq( 0, 2.5, by = 0.05 )
-predmode_pctNCE.df <- as.data.frame(mat.or.vec( length(v_vec), 4 ) )
+predmode_pctNCE.df <- as.data.frame(mat.or.vec( length(v_vec), 6 ) )
 pred_constant_val <- 0.7071068 * 0.8999994 # this changes to anchor the mortality curve in the same spot
-colnames(predmode_pctNCE.df) <- c("v", "NCE_TPE", "OptimalRITR", "Fitness")
+colnames(predmode_pctNCE.df) <- c("v", "NCE", "CE", "NCE_TPE", "OptimalRITR", "Fitness")
 
 for (i in 1:length( v_vec ) ){
 predmode_pctNCE.df[i, 1] <- v_vec[i]
 
 pm_growth_curve <- cost_constant_val * growth.curve( s = speed.vec, R = 1, h = 8 ) # Growth curve
-pm_mort_curve <- pred_constant_val * pred.curve( k = 1, v = v_vec[i], s = speed.vec ) # Mortality curve
-pm_fitness <- pm_growth_curve - pm_mort_curve # fitness
-pm_NCE_TPE <- (1 - pm_growth_curve)/(pm_mort_curve + (1 - pm_growth_curve))# NCE/TPE
+pm_pred_curve <- pred_constant_val * pred.curve( k = 1, v = v_vec[i], s = speed.vec ) # Mortality curve
+pm_fitness <- pm_growth_curve - pm_pred_curve # fitness
+pm_NCE_TPE <- (1 - pm_growth_curve)/(pm_pred_curve + (1 - pm_growth_curve))# NCE/TPE
 
-predmode_pctNCE.df[i, 2] <- pm_NCE_TPE[ which.max(pm_fitness) ]
+predmode_pctNCE.df[i, 2] <- 1 - pm_growth_curve[ which.max( pm_fitness ) ]
+predmode_pctNCE.df[i, 3] <- pm_pred_curve[ which.max( pm_fitness ) ]
+predmode_pctNCE.df[i, 4] <- pm_NCE_TPE[ which.max(pm_fitness) ]
 
 # Some other important metrics
-predmode_pctNCE.df[i, 3] <- speed.vec[ which.max(pm_fitness) ]
-predmode_pctNCE.df[i, 4] <- max(pm_fitness)
+predmode_pctNCE.df[i, 5] <- speed.vec[ which.max(pm_fitness) ]
+predmode_pctNCE.df[i, 6] <- max(pm_fitness)
 }
 
 # Repeat for mu/g
@@ -277,9 +281,9 @@ for (i in 1:length( v_vec ) ){
 predmode_pctNCE_mug.df[i, 1] <- v_vec[i]
 
 pm_growth_curve <- cost_constant_val * growth.curve( s = speed.vec, R = 1, h = 8 ) # Growth curve
-pm_mort_curve <- pred_constant_val * pred.curve( k = 1, v = v_vec[i], s = speed.vec ) # Mortality curve
-pm_fitness <-  pm_mort_curve / pm_growth_curve # fitness
-pm_NCE_TPE <- (1 - pm_growth_curve)/(pm_mort_curve + (1 - pm_growth_curve))# NCE/TPE
+pm_pred_curve <- pred_constant_val * pred.curve( k = 1, v = v_vec[i], s = speed.vec ) # Mortality curve
+pm_fitness <-  pm_pred_curve / pm_growth_curve # fitness
+pm_NCE_TPE <- (1 - pm_growth_curve)/(pm_pred_curve + (1 - pm_growth_curve))# NCE/TPE
 
 predmode_pctNCE_mug.df[i, 2] <- pm_NCE_TPE[ which.min(pm_fitness) ]
 
@@ -310,7 +314,7 @@ proptime_vec <- seq(1, 0, by = -0.01)
 
 ## 1) Baseline scenario
 refuge.df <- as.data.frame( mat.or.vec( length(proptime_vec), 7 ) ) 
-colnames(refuge.df) <- c("proptime", "resource_dens", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mu_g")
+colnames(refuge.df) <- c("proptime", "resource_dens", "growth_curve", "pred_curve", "fitness", "NCE_CE", "mu_g")
 
 # Growth follows a Type II FR, where instead of speed we're manipulating resource density
 refuge.df$proptime <- proptime_vec
@@ -321,18 +325,18 @@ refuge.df$growth_curve <- refuge.df$growth_curve * ( 1 / max( refuge.df$growth_c
 # Mortality curve, which linearly declines from val_A to val_B
 mort_val_A <- 0.4 # Mortality outside the refuge during an hour
 mort_val_B <- 0 # Mortality inside the refuge during an hour
-refuge.df$mort_curve <- ( 1 - refuge.df$proptime ) * mort_val_A + ( refuge.df$proptime ) * mort_val_B
+refuge.df$pred_curve <- ( 1 - refuge.df$proptime ) * mort_val_A + ( refuge.df$proptime ) * mort_val_B
 
 # Calculate fitness and relative strength of NCEs and CEs
-refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$mort_curve
-refuge.df$NCE_CE <- (1 - refuge.df$growth_curve) / refuge.df$mort_curve
-refuge.df$mu_g <- refuge.df$mort_curve / refuge.df$growth_curve
+refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$pred_curve
+refuge.df$NCE_CE <- (1 - refuge.df$growth_curve) / refuge.df$pred_curve
+refuge.df$mu_g <- refuge.df$pred_curve / refuge.df$growth_curve
 
 
 
 ## 2) Decrease handling time, i.e., increase resource processing rate
 refuge2.df <- as.data.frame( mat.or.vec( length(proptime_vec), 7 ) ) 
-colnames(refuge2.df) <- c("proptime", "resource_dens", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mu_g")
+colnames(refuge2.df) <- c("proptime", "resource_dens", "growth_curve", "pred_curve", "fitness", "NCE_CE", "mu_g")
 
 # Growth follows a Type II FR, where instead of speed we're manipulating resource density
 refuge2.df$proptime <- proptime_vec 
@@ -341,12 +345,12 @@ refuge2.df$growth_curve <- growth.curve(s = 1, R = refuge2.df$resource_dens, h =
 refuge2.df$growth_curve <- refuge2.df$growth_curve * ( 1 / max( refuge2.df$growth_curve ) ) # Anchor at 1
 
 # Mortality curve, which linearly declines from val_A to val_B
-refuge2.df$mort_curve <- ( 1 - refuge2.df$proptime ) * mort_val_A + ( refuge2.df$proptime) * mort_val_B
+refuge2.df$pred_curve <- ( 1 - refuge2.df$proptime ) * mort_val_A + ( refuge2.df$proptime) * mort_val_B
 
 # Calculate fitness and relative strength of NCEs and CEs
-refuge2.df$fitness <- 1 - ( 1 - refuge2.df$growth_curve ) - refuge2.df$mort_curve
-refuge2.df$NCE_CE <- ( 1 - refuge2.df$growth_curve ) / refuge2.df$mort_curve
-refuge2.df$mu_g <- refuge2.df$mort_curve / refuge2.df$growth_curve
+refuge2.df$fitness <- 1 - ( 1 - refuge2.df$growth_curve ) - refuge2.df$pred_curve
+refuge2.df$NCE_CE <- ( 1 - refuge2.df$growth_curve ) / refuge2.df$pred_curve
+refuge2.df$mu_g <- refuge2.df$pred_curve / refuge2.df$growth_curve
 
 # Replace NaNs with zeroes
 refuge.df[ 1, 7] <- 0
@@ -369,7 +373,7 @@ refuge_res_summary.df[ 1, 5 ] <-
 refuge_res_summary.df[ 1, 6 ] <- 
   refuge.df$fitness[which(refuge.df$fitness == max(refuge.df$fitness))] # Fitness at optimum
 refuge_res_summary.df[ 1, 7 ] <- 
-  refuge.df$mort_curve[which(refuge.df$fitness == max(refuge.df$fitness))] # CE strength at optimum
+  refuge.df$pred_curve[which(refuge.df$fitness == max(refuge.df$fitness))] # CE strength at optimum
 refuge_res_summary.df[ 1, 8 ] <- 
   1 - refuge_res_summary.df[ 1, 7 ] - refuge_res_summary.df[ 1, 6 ] # NCE strength at optimum
 refuge_res_summary.df[ 1, 9 ] <- 
@@ -381,7 +385,7 @@ refuge_res_summary.df[ 2, 5 ] <-
 refuge_res_summary.df[ 2, 6 ] <- 
   refuge2.df$fitness[which(refuge2.df$fitness == max(refuge2.df$fitness))] # Fitness at optimum
 refuge_res_summary.df[ 2, 7 ] <- 
-  refuge2.df$mort_curve[which(refuge2.df$fitness == max(refuge2.df$fitness))] # CE strength at optimum
+  refuge2.df$pred_curve[which(refuge2.df$fitness == max(refuge2.df$fitness))] # CE strength at optimum
 refuge_res_summary.df[ 2, 8 ] <- 
   1 - refuge_res_summary.df[ 2, 7 ] - refuge_res_summary.df[ 1, 6 ] # NCE strength at optimum
 refuge_res_summary.df[ 2, 9 ] <- 
@@ -406,11 +410,11 @@ ph_growth_curve <- ph_growth_curve * (1/max(ph_growth_curve)) # Anchor at 1
 # Mortality curve, which linearly declines from val_A to val_B
 mort_val_A <- 0.4 # Mortality outside the refuge during an hour
 mort_val_B <- 0 # Mortality inside the refuge during an hour
-ph_mort_curve <- ( 1 - refuge.df$proptime ) * mort_val_A + ( refuge.df$proptime) * mort_val_B
+ph_pred_curve <- ( 1 - refuge.df$proptime ) * mort_val_A + ( refuge.df$proptime) * mort_val_B
 
 
-ph_fitness <- ph_growth_curve - ph_mort_curve # fitness
-ph_NCE_TPE <- (1 - ph_growth_curve)/(ph_mort_curve + (1 - ph_growth_curve))# NCE/TPE
+ph_fitness <- ph_growth_curve - ph_pred_curve # fitness
+ph_NCE_TPE <- (1 - ph_growth_curve)/(ph_pred_curve + (1 - ph_growth_curve))# NCE/TPE
 
 prey_h_pctNCE.df[i, 2] <- ph_NCE_TPE[ which.max(ph_fitness) ]
 
@@ -435,7 +439,7 @@ write.csv(refuge_res_summary.df, "2-4_refuge_res_summary.csv", row.names = FALSE
 ```{r Refuge Use Case Studies, pt. 2}
 ## Derive the trait curves
 therm_refuge.df <- as.data.frame( mat.or.vec( length(proptime_vec), 6 ) ) 
-colnames(therm_refuge.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mu_g")
+colnames(therm_refuge.df) <- c("proptime", "growth_curve", "pred_curve", "fitness", "NCE_CE", "mu_g")
 therm_refuge.df$proptime <- rev(proptime_vec)
 
 
@@ -459,18 +463,18 @@ temp_C_vec <- seq(20, 23, by = 0.03) # this has to be the same length as proptim
 therm_refuge.df$growth_curve <- (1 - therm_refuge.df$proptime) * growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 19 ) + (therm_refuge.df$proptime) * growth.curve_warming( c_g = c_g.val, a_g = a_g.val, h_g = h_g.val, temp_C = 22 )
 
 # Mortality curve
-therm_refuge.df$mort_curve <- ( 1 - therm_refuge.df$proptime ) * mort_val_A + ( therm_refuge.df$proptime) * mort_val_B
+therm_refuge.df$pred_curve <- ( 1 - therm_refuge.df$proptime ) * mort_val_A + ( therm_refuge.df$proptime) * mort_val_B
 
 # Calculate fitness and relative strength of NCEs and CEs
-therm_refuge.df$fitness <- 1 - ( 1 - therm_refuge.df$growth_curve ) - therm_refuge.df$mort_curve
-therm_refuge.df$NCE_CE <- therm_refuge.df$growth_curve / therm_refuge.df$mort_curve
-therm_refuge.df$mu_g <- therm_refuge.df$mort_curve / therm_refuge.df$growth_curve
+therm_refuge.df$fitness <- 1 - ( 1 - therm_refuge.df$growth_curve ) - therm_refuge.df$pred_curve
+therm_refuge.df$NCE_CE <- therm_refuge.df$growth_curve / therm_refuge.df$pred_curve
+therm_refuge.df$mu_g <- therm_refuge.df$pred_curve / therm_refuge.df$growth_curve
 
 
 
 ## 2) Warmed Scenario
 therm_refuge2.df <- as.data.frame( mat.or.vec( length(proptime_vec), 6 ) ) 
-colnames(therm_refuge2.df) <- c("proptime", "growth_curve", "mort_curve", "fitness", "NCE_CE", "mu_g")
+colnames(therm_refuge2.df) <- c("proptime", "growth_curve", "pred_curve", "fitness", "NCE_CE", "mu_g")
 therm_refuge2.df$proptime <- rev( proptime_vec )
 
 # The growth curve will follow a temperature gradient along the prey's TPC
@@ -479,12 +483,12 @@ therm_refuge2.df$growth_curve <- (1 - therm_refuge.df$proptime) * growth.curve_w
 therm_refuge2.df$growth_curve <- therm_refuge2.df$growth_curve * (1/ max(therm_refuge2.df$growth_curve) )
 
 # Weighted mean of risk during time spent outside refuge + risk during time spent inside refuge
-therm_refuge2.df$mort_curve <- ( 1 - therm_refuge2.df$proptime ) * mort_val_A + ( therm_refuge2.df$proptime ) * mort_val_B 
+therm_refuge2.df$pred_curve <- ( 1 - therm_refuge2.df$proptime ) * mort_val_A + ( therm_refuge2.df$proptime ) * mort_val_B 
 
 # Calculate fitness and relative strength of NCEs and CEs
-therm_refuge2.df$fitness <- 1 - ( 1 - therm_refuge2.df$growth_curve ) - therm_refuge2.df$mort_curve
-therm_refuge2.df$NCE_CE <- therm_refuge2.df$growth_curve / therm_refuge2.df$mort_curve
-therm_refuge2.df$mu_g <- therm_refuge2.df$mort_curve / therm_refuge2.df$growth_curve
+therm_refuge2.df$fitness <- 1 - ( 1 - therm_refuge2.df$growth_curve ) - therm_refuge2.df$pred_curve
+therm_refuge2.df$NCE_CE <- therm_refuge2.df$growth_curve / therm_refuge2.df$pred_curve
+therm_refuge2.df$mu_g <- therm_refuge2.df$pred_curve / therm_refuge2.df$growth_curve
 
 
 
@@ -503,7 +507,7 @@ refuge_therm_summary.df[ 1, 6 ] <-
 refuge_therm_summary.df[ 1, 7 ] <- 
   max ( therm_refuge.df$fitness ) # Fitness at optimum
 refuge_therm_summary.df[ 1, 8 ] <- 
-  therm_refuge.df$mort_curve[which(therm_refuge.df$fitness == max(therm_refuge.df$fitness))] # CE strength at optimum
+  therm_refuge.df$pred_curve[which(therm_refuge.df$fitness == max(therm_refuge.df$fitness))] # CE strength at optimum
 refuge_therm_summary.df[ 1, 9 ] <-   
   1 - refuge_therm_summary.df[ 1, 8 ] - refuge_therm_summary.df[ 1, 7 ] # NCE strength at optimum
 refuge_therm_summary.df[ 1, 10 ] <- 
@@ -514,7 +518,7 @@ refuge_therm_summary.df[ 2, 6 ] <-
 refuge_therm_summary.df[ 2, 7 ] <- 
   max ( therm_refuge2.df$fitness ) # Fitness at optimum
 refuge_therm_summary.df[ 2, 8 ] <- 
-  therm_refuge2.df$mort_curve[which(therm_refuge2.df$fitness == max(therm_refuge2.df$fitness))] # CE strength at optimum
+  therm_refuge2.df$pred_curve[which(therm_refuge2.df$fitness == max(therm_refuge2.df$fitness))] # CE strength at optimum
 refuge_therm_summary.df[ 2, 9 ] <-   
   1 - refuge_therm_summary.df[ 2, 8 ] - refuge_therm_summary.df[ 2, 7 ] # NCE strength at optimum
 refuge_therm_summary.df[ 2, 10 ] <- 
