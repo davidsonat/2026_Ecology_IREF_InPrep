@@ -308,23 +308,21 @@ write.csv(predmode_pctNCE_mug.df, "1-5-2_predmode_mug.csv", row.names = FALSE)
 ```
 
 
-```{r Refuge Use Case Studies, pt. 1}
-### First scenario - resource poor refuge
+```{r Refuge Use Case Studies}
 proptime_vec <- seq(1, 0, by = -0.01)
 
-## 1) Baseline scenario
-refuge.df <- as.data.frame( mat.or.vec( length(proptime_vec), 7 ) ) 
-colnames(refuge.df) <- c("proptime", "resource_dens", "growth_curve", "pred_curve", "fitness", "NCE_CE", "mu_g")
+## 1) Resource rich refuge
+refuge.df <- as.data.frame( mat.or.vec( length(proptime_vec), 6 ) ) 
+colnames(refuge.df) <- c("proptime", "growth_curve", "pred_curve", "fitness", "NCE_CE", "mu_g")
 
-# Growth follows a Type II FR, where instead of speed we're manipulating resource density
+# Growth is the sum of the functional response in A and B
 refuge.df$proptime <- proptime_vec
-refuge.df$resource_dens <- seq(0, 1, by = 0.01) # This needs to be the same length as proptime_vec
-refuge.df$growth_curve <- growth.curve( s = 1, R = refuge.df$resource_dens, h = 10 )
-refuge.df$growth_curve <- refuge.df$growth_curve * ( 1 / max( refuge.df$growth_curve ) ) # Anchor at 1
+refuge.df$growth_curve <- (1 - refuge.df$proptime) * growth.curve( s = 1, R = 1, h = 1 ) + 
+  refuge.df$proptime * growth.curve(s = 1, R = 0.5, h = 1)
 
 # Mortality curve, which linearly declines from val_A to val_B
 mort_val_A <- 0.4 # Mortality outside the refuge during an hour
-mort_val_B <- 0 # Mortality inside the refuge during an hour
+mort_val_B <- 0.1 # Mortality inside the refuge during an hour
 refuge.df$pred_curve <- ( 1 - refuge.df$proptime ) * mort_val_A + ( refuge.df$proptime ) * mort_val_B
 
 # Calculate fitness and relative strength of NCEs and CEs
@@ -334,15 +332,14 @@ refuge.df$mu_g <- refuge.df$pred_curve / refuge.df$growth_curve
 
 
 
-## 2) Decrease handling time, i.e., increase resource processing rate
-refuge2.df <- as.data.frame( mat.or.vec( length(proptime_vec), 7 ) ) 
-colnames(refuge2.df) <- c("proptime", "resource_dens", "growth_curve", "pred_curve", "fitness", "NCE_CE", "mu_g")
+## 2) Resource poor refuge
+refuge2.df <- as.data.frame( mat.or.vec( length(proptime_vec), 6 ) ) 
+colnames(refuge2.df) <- c("proptime", "growth_curve", "pred_curve", "fitness", "NCE_CE", "mu_g")
 
 # Growth follows a Type II FR, where instead of speed we're manipulating resource density
 refuge2.df$proptime <- proptime_vec 
-refuge2.df$resource_dens <- seq(0, 1, by = 0.01) # This needs to be the same length as proptime_vec
-refuge2.df$growth_curve <- growth.curve(s = 1, R = refuge2.df$resource_dens, h = 2)
-refuge2.df$growth_curve <- refuge2.df$growth_curve * ( 1 / max( refuge2.df$growth_curve ) ) # Anchor at 1
+refuge2.df$growth_curve <- (1 - refuge2.df$proptime) * growth.curve( s = 1, R = 1, h = 0.1 ) + 
+  refuge2.df$proptime * growth.curve(s = 1, R = 0.5, h = 0.1)
 
 # Mortality curve, which linearly declines from val_A to val_B
 refuge2.df$pred_curve <- ( 1 - refuge2.df$proptime ) * mort_val_A + ( refuge2.df$proptime) * mort_val_B
@@ -352,10 +349,6 @@ refuge2.df$fitness <- 1 - ( 1 - refuge2.df$growth_curve ) - refuge2.df$pred_curv
 refuge2.df$NCE_CE <- ( 1 - refuge2.df$growth_curve ) / refuge2.df$pred_curve
 refuge2.df$mu_g <- refuge2.df$pred_curve / refuge2.df$growth_curve
 
-# Replace NaNs with zeroes
-refuge.df[ 1, 7] <- 0
-refuge2.df[ 1, 7] <- 0
-
 
 
 ## 3) Calculate summary stats for each data set, inc. optimum, fitness, CE and NCE strength, mu/g, etc
@@ -363,9 +356,9 @@ refuge_res_summary.df <- as.data.frame( mat.or.vec( 2, 9 ) )
 colnames(refuge_res_summary.df) <- c("case", "h_val", "P_A", "P_B", "optim", "fitness", "CE", "NCE", "optim_mu_g")
 
 refuge_res_summary.df$case <- c( "base", "fast_h" )
-refuge_res_summary.df$h_val <- c( "10", "2" )
+refuge_res_summary.df$h_val <- c( "1", "0.1" )
 refuge_res_summary.df$P_A <- c( "0.4", "0.4" )
-refuge_res_summary.df$P_B <- c( "0", "0" )
+refuge_res_summary.df$P_B <- c( "0.1", "0.1" )
 
 # For baseline scenario
 refuge_res_summary.df[ 1, 5 ] <- 
@@ -395,7 +388,7 @@ refuge_res_summary.df[ 2, 9 ] <-
 
 ## 4) Calculate % NCE of TPE and optimal RITR
 # Calculate change in NCE % of TPE, and optimal RITR, with decreasing h:
-h_vec <- seq( 15, 1.5, by = -0.1 )
+h_vec <- seq( 1.25, 0.05, by = -0.05 )
 prey_h_pctNCE.df <- as.data.frame(mat.or.vec( length(h_vec), 5 ) )
 colnames(prey_h_pctNCE.df) <- c("h", "NCE_TPE", "OptimalRITR", "Fitness", "inverse_h")
 
@@ -404,12 +397,12 @@ prey_h_pctNCE.df[i, 1] <- h_vec[i]
 
 # Growth follows a Type II FR, where instead of speed we're manipulating resource density
 resource_vec <- seq(0, 1, by = 0.01) # This needs to be the same length as proptime_vec, here the refuge has ZERO resources
-ph_growth_curve <- growth.curve(s = 1, R = resource_vec, h = h_vec[i])
-ph_growth_curve <- ph_growth_curve * (1/max(ph_growth_curve)) # Anchor at 1
+ph_growth_curve <- (1 - refuge.df$proptime) * growth.curve(s = 1, R = 1, h = h_vec[i]) + 
+  (refuge.df$proptime) * growth.curve(s = 1, R = 0.5, h = h_vec[i])
 
 # Mortality curve, which linearly declines from val_A to val_B
 mort_val_A <- 0.4 # Mortality outside the refuge during an hour
-mort_val_B <- 0 # Mortality inside the refuge during an hour
+mort_val_B <- 0.1 # Mortality inside the refuge during an hour
 ph_pred_curve <- ( 1 - refuge.df$proptime ) * mort_val_A + ( refuge.df$proptime) * mort_val_B
 
 
@@ -426,7 +419,6 @@ prey_h_pctNCE.df[i, 4] <- max(ph_fitness)
 prey_h_pctNCE.df$inverse_h <- 1/prey_h_pctNCE.df$h
 ```
 
-
 ```{r Refuge Use Resource Data Export, eval = FALSE}
 # Export the four data sets
 write.csv(refuge.df, "2-1_refuge_res_base.csv", row.names = FALSE)
@@ -434,6 +426,104 @@ write.csv(refuge2.df, "2-2_refuge_res_fast_h.csv", row.names = FALSE)
 write.csv(prey_h_pctNCE.df, "2-3_refuge_res_TPE_Opt.csv", row.names = FALSE)
 write.csv(refuge_res_summary.df, "2-4_refuge_res_summary.csv", row.names = FALSE)
 ```
+
+```{r Refuge Use Discrete Form}
+### First scenario - resource poor refuge
+proptime_vec <- seq(1, 0, by = -0.01)
+
+## 1) Baseline scenario
+refuge.df <- as.data.frame( mat.or.vec( length(proptime_vec), 7 ) ) 
+colnames(refuge.df) <- c("proptime", "resource_val", "growth_curve", "pred_curve", "fitness", "NCE_CE", "mu_g")
+
+# Assume no resources, no predators in refuge
+# Growth follows a Type II FR, where instead of speed we're manipulating resource density
+refuge.df$proptime <- proptime_vec
+refuge.df$resource_val <- 1 - proptime_vec
+refuge.df$growth_curve <- growth.curve( s = 1, R = refuge.df$resource_val, h = 5 )
+refuge.df$growth_curve <- refuge.df$growth_curve * (1 / 0.16666667) # Anchor at 1
+
+# Mortality curve, which linearly declines from val_A to val_B
+mort_val_A <- 0.4 # Mortality outside the refuge during an hour
+mort_val_B <- 0.1 # Mortality inside the refuge during an hour
+refuge.df$pred_curve <- ( 1 - refuge.df$proptime ) * mort_val_A + ( refuge.df$proptime ) * mort_val_B
+
+# Calculate fitness and relative strength of NCEs and CEs
+refuge.df$fitness <- 1 - ( 1 - refuge.df$growth_curve ) - refuge.df$pred_curve
+refuge.df$NCE_CE <- (1 - refuge.df$growth_curve) / refuge.df$pred_curve
+refuge.df$mu_g <- refuge.df$pred_curve / refuge.df$growth_curve
+
+write.csv(refuge.df, "2-3_refuge_satiation.csv", row.names = FALSE)
+
+
+
+## 3) Calculate summary stats for each data set, inc. optimum, fitness, CE and NCE strength, mu/g, etc
+refuge_res_summary.df <- as.data.frame( mat.or.vec( 2, 9 ) )
+colnames(refuge_res_summary.df) <- c("case", "h_val", "P_A", "P_B", "optim", "fitness", "CE", "NCE", "optim_mu_g")
+
+refuge_res_summary.df$case <- c( "base", "fast_h" )
+refuge_res_summary.df$h_val <- c( "1", "0.1" )
+refuge_res_summary.df$P_A <- c( "0.4", "0.4" )
+refuge_res_summary.df$P_B <- c( "0", "0" )
+
+# For baseline scenario
+refuge_res_summary.df[ 1, 5 ] <- 
+  refuge.df$proptime[which(refuge.df$fitness == max(refuge.df$fitness))] # Optimum under 1 - NCE - CE
+refuge_res_summary.df[ 1, 6 ] <- 
+  refuge.df$fitness[which(refuge.df$fitness == max(refuge.df$fitness))] # Fitness at optimum
+refuge_res_summary.df[ 1, 7 ] <- 
+  refuge.df$pred_curve[which(refuge.df$fitness == max(refuge.df$fitness))] # CE strength at optimum
+refuge_res_summary.df[ 1, 8 ] <- 
+  1 - refuge_res_summary.df[ 1, 7 ] - refuge_res_summary.df[ 1, 6 ] # NCE strength at optimum
+refuge_res_summary.df[ 1, 9 ] <- 
+    refuge.df$proptime[which(refuge.df$mu_g == min(refuge.df$mu_g, na.rm = TRUE))] # Optimum using mu/g
+
+# For fast h scenario
+refuge_res_summary.df[ 2, 5 ] <- 
+  refuge2.df$proptime[which(refuge2.df$fitness == max(refuge2.df$fitness))] # Optimum under 1 - NCE - CE
+refuge_res_summary.df[ 2, 6 ] <- 
+  refuge2.df$fitness[which(refuge2.df$fitness == max(refuge2.df$fitness))] # Fitness at optimum
+refuge_res_summary.df[ 2, 7 ] <- 
+  refuge2.df$pred_curve[which(refuge2.df$fitness == max(refuge2.df$fitness))] # CE strength at optimum
+refuge_res_summary.df[ 2, 8 ] <- 
+  1 - refuge_res_summary.df[ 2, 7 ] - refuge_res_summary.df[ 1, 6 ] # NCE strength at optimum
+refuge_res_summary.df[ 2, 9 ] <- 
+    refuge.df$proptime[which(refuge2.df$mu_g == min(refuge2.df$mu_g, na.rm = TRUE))] # Optimum using mu/g
+
+
+
+## 4) Calculate % NCE of TPE and optimal RITR
+# Calculate change in NCE % of TPE, and optimal RITR, with decreasing h:
+h_vec <- seq( 1.25, 0.05, by = -0.05 )
+prey_h_pctNCE.df <- as.data.frame(mat.or.vec( length(h_vec), 5 ) )
+colnames(prey_h_pctNCE.df) <- c("h", "NCE_TPE", "OptimalRITR", "Fitness", "inverse_h")
+
+for (i in 1:length( h_vec ) ){
+prey_h_pctNCE.df[i, 1] <- h_vec[i]
+
+# Growth follows a Type II FR, where instead of speed we're manipulating resource density
+resource_vec <- seq(0, 1, by = 0.01) # This needs to be the same length as proptime_vec, here the refuge has ZERO resources
+ph_growth_curve <- (1 - refuge.df$proptime) * growth.curve(s = 1, R = 1, h = h_vec[i]) + 
+  (refuge.df$proptime) * growth.curve(s = 1, R = 0.5, h = h_vec[i])
+
+# Mortality curve, which linearly declines from val_A to val_B
+mort_val_A <- 0.4 # Mortality outside the refuge during an hour
+mort_val_B <- 0.1 # Mortality inside the refuge during an hour
+ph_pred_curve <- ( 1 - refuge.df$proptime ) * mort_val_A + ( refuge.df$proptime) * mort_val_B
+
+
+ph_fitness <- ph_growth_curve - ph_pred_curve # fitness
+ph_NCE_TPE <- (1 - ph_growth_curve)/(ph_pred_curve + (1 - ph_growth_curve))# NCE/TPE
+
+prey_h_pctNCE.df[i, 2] <- ph_NCE_TPE[ which.max(ph_fitness) ]
+
+# Some other important metrics
+prey_h_pctNCE.df[i, 3] <- proptime_vec[ which.max(ph_fitness) ]
+prey_h_pctNCE.df[i, 4] <- max(ph_fitness)
+}
+
+prey_h_pctNCE.df$inverse_h <- 1/prey_h_pctNCE.df$h
+```
+
 
 
 ```{r Refuge Use Case Studies, pt. 2}
