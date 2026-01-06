@@ -1,0 +1,151 @@
+---
+title: 'Trait: Refuge Use'
+author: "Andy Davidson"
+date: "2025-12-08"
+output: pdf_document
+---
+
+```{r Setup Config}
+library(ggbrace)
+library(knitr)
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+# Trait: Refuge Use
+
+Here, we use the example of prey that make use of a safe but resource-absent refuge habitat to avoid predation. We describe the amount of time prey spend in the refuge using the term $\delta$. We use it to illustrate how different modeling assumptions can dramatically change the conclusions we draw using IREF.
+
+## 1. Predation Curve
+
+As before, we assume that predators exhibit a Type I functional response, and thus the amount of predation that prey experience will be a linear function of the predator's functional response in both habitats. We simplify this here by assuming that this translates to a mortality probability in Habitat A (the main habitat) and a different, lower mortality probability in Habitat B (the refuge habitat).
+
+
+## 2. Growth Curve
+
+We present two ways in which the growth curve can be derived. In the first example, the curve is calculated as above: as the linear sum of the prey's functional response (assumed to be Type II) in Habitats A and B.
+
+In the second example, we assume that prey may exhibit satiation, and thus they will experience diminishing returns on growth with further time spent foraging. We approximate this using a curvilinear function that is mathematically similar to a Type II functional response.
+
+```{r Growth Curve}
+## The Growth Curve
+# R is always assumed to be 1, while s and h are manipulated values
+growth.curve <- function(s, R, h){
+  (R * s)/(1 + s*R*h)
+}
+```
+
+# Case 1: Linear Growth
+
+When both growth and predation are linearly related to $\delta$, the optimal RITR is either to spend all of the time in the refuge, or none of it.
+
+```{r Linear Growth, No Refuge Use}
+delta_vec <- seq(1, 0, by = -0.01) # Proportion of time spent in Habitat B
+linear_growth_noRef.df <- as.data.frame( mat.or.vec( length(delta_vec), 5 ) ) 
+colnames(linear_growth_noRef.df) <- c("delta", "growth_curve", "pred_curve", "fitness", "NCE_CE")
+
+# Growth is the sum of the functional response in A and B
+linear_growth_noRef.df$delta <- delta_vec
+cost_constant_val <- 2
+linear_growth_noRef.df$growth_curve <- (1 - linear_growth_noRef.df$delta) * cost_constant_val * growth.curve( s = 1, R = 1, h = 1 ) + ( linear_growth_noRef.df$delta ) * growth.curve( s = 1, R = 0.1, h = 5 )
+
+# Mortality is the sum of risk in A and B
+mort_val_A <- 0.5 # Mortality outside the refuge during an hour
+mort_val_B <- 0 # Mortality inside the refuge during an hour
+linear_growth_noRef.df$pred_curve <- ( 1 - linear_growth_noRef.df$delta ) * mort_val_A + ( linear_growth_noRef.df$delta ) * mort_val_B
+
+# Calculate fitness and relative strength of NCEs and CEs
+linear_growth_noRef.df$fitness <- 1 - ( 1 - linear_growth_noRef.df$growth_curve ) - linear_growth_noRef.df$pred_curve
+linear_growth_noRef.df$NCE_CE <- (1 - linear_growth_noRef.df$growth_curve) / linear_growth_noRef.df$pred_curve
+```
+
+```{r Linear Growth, No Refuge Use}
+linear_growth_allRef.df <- as.data.frame( mat.or.vec( length(delta_vec), 5 ) ) 
+colnames(linear_growth_allRef.df) <- c("delta", "growth_curve", "pred_curve", "fitness", "NCE_CE")
+
+# Growth is the sum of the functional response in A and B
+linear_growth_allRef.df$delta <- delta_vec
+linear_growth_allRef.df$growth_curve <- (1 - linear_growth_allRef.df$delta) * cost_constant_val * growth.curve( s = 1, R = 1, h = 1 ) + ( linear_growth_allRef.df$delta ) * growth.curve( s = 1, R = 0.1, h = 5 )
+
+# Mortality is the sum of risk in A and B
+mort_val_A <- 1 # Mortality outside the refuge during an hour
+mort_val_B <- 0 # Mortality inside the refuge during an hour
+linear_growth_allRef.df$pred_curve <- ( 1 - linear_growth_allRef.df$delta ) * mort_val_A + ( linear_growth_allRef.df$delta ) * mort_val_B
+
+# Calculate fitness and relative strength of NCEs and CEs
+linear_growth_allRef.df$fitness <- 1 - ( 1 - linear_growth_allRef.df$growth_curve ) - linear_growth_allRef.df$pred_curve
+linear_growth_allRef.df$NCE_CE <- (1 - linear_growth_allRef.df$growth_curve) / linear_growth_allRef.df$pred_curve
+```
+
+# Case 2: Diminishing Returns Due to Satiation
+
+If instead, growth is nonlinearly related to $\delta$, intermediate optimal RITRs are possible.
+
+```{r With Satiation}
+nonlinear.df <- as.data.frame( mat.or.vec( length(delta_vec), 5 ) ) 
+colnames(nonlinear.df) <- c("delta", "growth_curve", "pred_curve", "fitness", "NCE_CE")
+
+# Assume no resources, no predators in refuge
+# Growth follows a Type II FR, where instead of speed we're manipulating resource density
+nonlinear.df$delta <- delta_vec
+nonlinear.df$growth_curve <- growth.curve( s = 1, R = 1 - nonlinear.df$delta, h = 5 )
+nonlinear.df$growth_curve <- nonlinear.df$growth_curve * (0.9 / 0.16666667) + 0.1 # Anchor at 1
+
+# Mortality curve, which linearly declines from val_A to val_B
+mort_val_A <- 1 # Mortality outside the refuge during an hour
+mort_val_B <- 0 # Mortality inside the refuge during an hour
+nonlinear.df$pred_curve <- ( 1 - nonlinear.df$delta ) * mort_val_A + ( nonlinear.df$delta ) * mort_val_B
+
+# Calculate fitness and relative strength of NCEs and CEs
+nonlinear.df$fitness <- 1 - ( 1 - nonlinear.df$growth_curve ) - nonlinear.df$pred_curve
+nonlinear.df$NCE_CE <- (1 - nonlinear.df$growth_curve) / nonlinear.df$pred_curve
+```
+
+```{r Summary Stats}
+## Calculate summary stats for each data set, inc. optimum, fitness, CE and NCE strength,  etc
+refuge_summary.df <- as.data.frame( mat.or.vec( 3, 5) )
+colnames(refuge_summary.df) <- c("case", "optim", "fitness", "CE", "NCE")
+
+refuge_summary.df$case <- c("NoUse", "AllUse", "Nonlinear")
+
+
+#For No Use scenario:
+refuge_summary.df[1, 2] <- 
+  linear_growth_noRef.df$delta[which(linear_growth_noRef.df$fitness == max(linear_growth_noRef.df$fitness))] # Optimum under 1 - NCE - CE
+refuge_summary.df[1, 3] <- 
+  linear_growth_noRef.df$fitness[which(linear_growth_noRef.df$fitness == max(linear_growth_noRef.df$fitness))] # Fitness at optimum
+refuge_summary.df[1, 4] <- 
+  linear_growth_noRef.df$pred_curve[which(linear_growth_noRef.df$fitness == max(linear_growth_noRef.df$fitness))] # CE strength at optimum
+refuge_summary.df[1, 5] <- 
+  1 - refuge_summary.df[1, 4] - refuge_summary.df[1, 3] # NCE strength at optimum
+
+#For All Use scenario:
+refuge_summary.df[2, 2] <- 
+  linear_growth_allRef.df$delta[which(linear_growth_allRef.df$fitness == max(linear_growth_allRef.df$fitness))] # Optimum under 1 - NCE - CE
+refuge_summary.df[2, 3] <- 
+  linear_growth_allRef.df$fitness[which(linear_growth_allRef.df$fitness == max(linear_growth_allRef.df$fitness))] # Fitness at optimum
+refuge_summary.df[2, 4] <- 
+  linear_growth_allRef.df$pred_curve[which(linear_growth_allRef.df$fitness == max(linear_growth_allRef.df$fitness))] # CE strength at optimum
+refuge_summary.df[2, 5] <- 
+  1 - refuge_summary.df[2, 4] - refuge_summary.df[2, 3] # NCE strength at optimum
+
+#For Nonlinear Growth scenario:
+refuge_summary.df[3, 2] <- 
+  nonlinear.df$delta[which(nonlinear.df$fitness == max(nonlinear.df$fitness))] # Optimum under 1 - NCE - CE
+refuge_summary.df[3, 3] <- 
+  nonlinear.df$fitness[which(nonlinear.df$fitness == max(nonlinear.df$fitness))] # Fitness at optimum
+refuge_summary.df[3, 4] <- 
+  nonlinear.df$pred_curve[which(nonlinear.df$fitness == max(nonlinear.df$fitness))] # CE strength at optimum
+refuge_summary.df[3, 5] <- 
+  1 - refuge_summary.df[3, 4] - refuge_summary.df[3, 3] # NCE strength at optimum
+
+```
+
+
+```{r Refuge Use Resource Data Export, eval = FALSE}
+# Export the four data sets
+write.csv(linear_growth_noRef.df, "2-1_refuge_linear_NoUse.csv", row.names = FALSE)
+write.csv(linear_growth_allRef.df, "2-2_refuge_linear_AllUse.csv", row.names = FALSE)
+write.csv(nonlinear.df, "2-3_refuge_nonlinear.csv", row.names = FALSE)
+write.csv(refuge_summary.df, "2-4_refuge_summary.csv", row.names = FALSE)
+```

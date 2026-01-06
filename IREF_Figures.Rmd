@@ -1,0 +1,580 @@
+---
+title: "IREF_theoryCSFigures_09-29-25"
+author: "Andy"
+date: "2025-09-29"
+output: pdf_document
+---
+
+```{r Setup Config}
+library(ggplot2)
+library(cowplot)
+library(ggbrace)
+library(knitr)
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+theme_set( theme_classic( base_size = 10, base_line_size = 1) +
+             theme( panel.border = element_rect( color = "black", fill = NA, linewidth = 0.75 ), aspect.ratio = 1 ) )
+annot_size <- 9/.pt
+```
+
+
+```{r Figure 1: IREF General Example}
+baseline.df <- read.csv("1-1_displacement_baseline.csv")
+baseline_summary.df <- read.csv("1-5_displacement_summary.csv") # Find a way to read in the optimums from here
+
+optim <- baseline_summary.df[ 1, 5 ]
+optim_fitness <- baseline_summary.df[ 1, 6 ]
+optim_CE <- baseline_summary.df[ 1, 7 ]
+optim_NCE <- baseline_summary.df[ 1, 8 ]
+
+fig1_a.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
+  geom_line( aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
+  ylab( "Growth and Predation" ) +
+  xlab( "Trait Expression" ) +
+  annotate( "text", x = 0.25, y = 0.85, label = "Growth", size = annot_size  ) +
+  annotate( "text", x = 0.5, y = 0.35, label = "Predation", size = annot_size  ) +
+  scale_x_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ), labels = c( "Low", "", "High" ) ) + 
+  scale_y_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual( name = "Curve", values = c( "blue", "red" ) ) + 
+  theme( plot.margin = margin(1, 15, 0, 10),
+         legend.position = "none" )
+
+fig1_b.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
+  geom_line( aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
+  geom_line( aes( y = fitness, color = "Fitness" ), linewidth = 1, linetype = "dashed" ) +
+  geom_vline( xintercept = optim, color = "green", linetype = "dashed" ) +
+  ylab("Growth and Predation") +
+  xlab("Trait Expression") +
+  scale_x_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ), labels = c( "Low", "", "High" ) ) + 
+  scale_y_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual( name = "Curve", values = c( "green", "blue", "red" ) ) + 
+  theme( axis.title.y = element_blank(), legend.position = "none",
+         plot.margin = margin( 1, 15, 0, 10 ) )
+
+NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
+           ymin = 1 - optim_NCE, ymax = 0.998, 
+           color = "gray2", fill = "lightblue", alpha = 0.5 )
+fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = optim_CE, ymax = optim_CE + optim_fitness, 
+           color = "gray2", fill = "lightgreen", alpha = 0.5)
+CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = 0.001, ymax = optim_CE,
+           color = "gray2", fill = "red", alpha = 0.5)
+NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
+            label = as.character( round( optim_NCE, digits = 2 ) ), 
+            color = "blue",
+            hjust = "left", size = annot_size )
+fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2, 
+            label = as.character( round( optim_fitness, digits = 2 ) ),
+            color = "green",
+            hjust = "left", size = annot_size  )
+CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
+            label = as.character( round( optim_CE, digits = 2 ) ),
+            color = "red",
+            hjust = "left", size = annot_size )
+
+fig1_c.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ), size = 1 ) +
+  geom_line( aes( y = pred_curve, color = "Predation" ), size = 1, linetype = "dotted" ) +
+  ylab( "" ) +
+  xlab( "Trait Expression" ) +
+  NCE_bar + fitness_bar + CE_bar +
+  NCE_label + fitness_label + CE_label +
+  scale_x_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ), labels = c( "Low", "", "High" ) ) + 
+  scale_y_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual( name = "Curve", values = c( "blue", "red" ) ) + 
+  theme( plot.margin = margin(1, 15, 0, 10),
+         legend.position = "none" )
+
+fig1.legend <- get_legend(fig1_b.plot + theme(legend.position = "bottom", legend.box.margin = margin(0, 0, 0, 0) ) )
+
+fig1.plot <- plot_grid( fig1_a.plot, fig1_b.plot, fig1_c.plot, nrow = 1, labels = "auto", label_y = 0.9, align = "hv" ) + theme(plot.margin = unit( c(0, 0, 0, 0), "cm") )
+fig1.plot <- plot_grid( fig1.plot, fig1.legend, ncol = 1, rel_heights = c( 1, 0.1 ) )
+
+# ggsave("fig1.png", plot = fig1.plot, dpi = 300, width = 9, height = 3.5, bg = "white")
+```
+
+
+```{r Figure 2: Displacement Rate - Increasing Predator Density}
+preddens.df <- read.csv("1-2-1_displacement_preddens.csv")
+preddens_pctNCE.df <- read.csv("1-2-2_preddens_TPE_Opt.csv")
+
+# Fig. 2 - predator density
+preddens_1.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
+  geom_line( aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
+  NCE_bar + fitness_bar + CE_bar +
+  NCE_label + fitness_label + CE_label +
+  annotate("text", x = 0.15, y = 0.05, label = "P = 0.45", size = annot_size ) +
+  ylab("Growth and Predation") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  theme( axis.title.x = element_blank(),
+         axis.text.x = element_blank(), 
+         legend.position = "bottom",
+         legend.key = element_rect( fill = "white" ), 
+         legend.text = element_text( color = "white" ),
+         legend.title = element_text( color = "white" ) ) +
+  guides(color = guide_legend(override.aes = list(color = NA)))
+
+
+optim <- baseline_summary.df[ 2, 5 ]
+optim_fitness <- baseline_summary.df[ 2, 6 ]
+optim_CE <- baseline_summary.df[ 2, 7 ]
+optim_NCE <- baseline_summary.df[ 2, 8 ]
+
+NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
+           ymin = 1 - optim_NCE, ymax = 0.998, 
+           color = "gray2", fill = "lightblue", alpha = 0.5 )
+fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = optim_CE, ymax = optim_CE + optim_fitness, 
+           color = "gray2", fill = "lightgreen", alpha = 0.5)
+CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = 0.001, ymax = optim_CE,
+           color = "gray2", fill = "red", alpha = 0.5)
+NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
+            label = as.character( round( optim_NCE, digits = 2 ) ), 
+            color = "blue",
+            hjust = "left", size = annot_size )
+fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2, 
+            label = as.character( round( optim_fitness, digits = 2 ) ),
+            color = "green",
+            hjust = "left", size = annot_size  )
+CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
+            label = as.character( round( optim_CE, digits = 2 ) - 0.01 ),
+            color = "red",
+            hjust = "left", size = annot_size )
+
+preddens_2.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
+  geom_line( aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
+  NCE_bar + fitness_bar + CE_bar +
+  NCE_label + fitness_label + CE_label +
+  annotate("text", x = 0.15, y = 0.05, label = "P = 0.90", size = annot_size ) +
+  ylab("Growth and Predation") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  theme( legend.position = "bottom" )
+
+preddens_3.plot <- ggplot( data = preddens_pctNCE.df, aes( x = P ) ) +
+  geom_point( aes( y = NCE_TPE, fill = Fitness ), color = "black", shape = 21, size = 2.5 ) +
+  ylab("% NCE Contribution to TPE") +
+  xlab("Predator Density") +
+  annotate('text', x = 0.45, y = 0.425, label = 'a') +
+  annotate('text', x = 0.9, y = 0.45, label = 'b') +
+  scale_x_continuous(expand = c(0, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
+  scale_fill_continuous( type = "viridis" ) +
+  theme( legend.position = "bottom")
+
+preddens_4.plot <- ggplot( data = preddens_pctNCE.df, aes( x = P ) ) +
+  geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, size = 2.5 ) +
+  ylab("Optimal RITR") +
+  xlab("") +
+  annotate('text', x = 0.45, y = 0.375, label = 'a') +
+  annotate('text', x = 0.9, y = 0.225, label = 'b') +
+  scale_x_continuous(expand = c(0, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
+  scale_fill_continuous( type = "viridis" ) +
+  theme( legend.position = "bottom" ) +
+  guides(fill = "none")
+
+preddens.fig <- plot_grid( preddens_1.plot, preddens_4.plot, preddens_2.plot, preddens_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.75, align = c("hv") )
+
+ ggsave("fig2.png", plot = preddens.fig, dpi = 300, bg = "white", width = 6, height = 6)
+```
+
+
+```{r Figure 3: Displacement Rate - Predator Hunting Mode}
+predmode.df <- read.csv("1-3-1_displacement_predmode.csv")
+predmode_pctNCE.df <- read.csv("1-3-2_predmode_TPE_Opt.csv")
+
+optim <- baseline_summary.df[ 2, 5 ]
+optim_fitness <- baseline_summary.df[ 2, 6 ]
+optim_CE <- baseline_summary.df[ 2, 7 ]
+optim_NCE <- baseline_summary.df[ 2, 8 ]
+
+NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
+           ymin = 1 - optim_NCE, ymax = 0.998, 
+           color = "gray2", fill = "lightblue", alpha = 0.5 )
+fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = optim_CE, ymax = optim_CE + optim_fitness, 
+           color = "gray2", fill = "lightgreen", alpha = 0.5)
+CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = 0.001, ymax = optim_CE,
+           color = "gray2", fill = "red", alpha = 0.5)
+NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
+            label = as.character( round( optim_NCE, digits = 2 ) ), 
+            color = "blue",
+            hjust = "left", size = annot_size )
+fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2 - 0.025, 
+            label = as.character( round( optim_fitness, digits = 2 ) ),
+            color = "green",
+            hjust = "left", size = annot_size  )
+CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
+            label = as.character( round( optim_CE, digits = 2 ) - 0.01 ),
+            color = "red",
+            hjust = "left", size = annot_size )
+
+predmode_1.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
+  geom_line( aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
+  NCE_bar + fitness_bar + CE_bar +
+  NCE_label + fitness_label + CE_label +
+  annotate("text", x = 0.15, y = 0.05, label = "v = 0.2", size = 9/.pt ) +
+  ylab("Growth and Predation") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  theme( axis.title.x = element_blank(),
+         axis.text.x = element_blank(), legend.position = "bottom" ) + 
+  guides(color = "none")
+
+
+optim <- baseline_summary.df[ 3, 5 ]
+optim_fitness <- baseline_summary.df[ 3, 6 ]
+optim_CE <- baseline_summary.df[ 3, 7 ]
+optim_NCE <- baseline_summary.df[ 3, 8 ]
+
+NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
+           ymin = 1 - optim_NCE, ymax = 0.998, 
+           color = "gray2", fill = "lightblue", alpha = 0.5 )
+fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = optim_CE, ymax = optim_CE + optim_fitness, 
+           color = "gray2", fill = "lightgreen", alpha = 0.5)
+CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = 0.001, ymax = optim_CE,
+           color = "gray2", fill = "red", alpha = 0.5)
+NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
+            label = as.character( round( optim_NCE, digits = 2 ) ), 
+            color = "blue",
+            hjust = "left", size = annot_size )
+fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2 - 0.025, 
+            label = as.character( round( optim_fitness, digits = 2 ) ),
+            color = "green",
+            hjust = "left", size = annot_size  )
+CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
+            label = as.character( round( optim_CE, digits = 2 ) ),
+            color = "red",
+            hjust = "left", size = annot_size )
+
+predmode_2.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
+  geom_line( aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
+  NCE_bar + fitness_bar + CE_bar +
+  NCE_label + fitness_label + CE_label +
+  annotate("text", x = 0.15, y = 0.05, label = "v = 1.0", size = 9/.pt ) +
+  ylab("Growth and Predation") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  theme( legend.position = "bottom" )
+
+
+predmode_3.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
+  geom_point( aes( y = NCE_TPE, fill = Fitness ), shape = 21, color = "black", size = 2.5) +
+  ylab("% NCE Contribution to TPE") +
+  xlab("Predator Velocity") +
+  annotate('text', x = 0.2, y = 0.5, label = 'a') +
+  annotate('text', x = 1, y = 0.2, label = 'b') +
+  scale_x_continuous(expand = c(0, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
+  scale_fill_continuous( type = "viridis" ) +
+  theme( legend.position = "bottom")
+
+predmode_4.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
+  geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, color = "black", size = 2.5 ) +
+  ylab("Optimal RITR") +
+  xlab("Predator Velocity") +
+  annotate('text', x = 0.2, y = 0.47, label = 'a') +
+  annotate('text', x = 1, y = 0.65, label = 'b') +
+  scale_x_continuous(expand = c(0, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
+  scale_fill_continuous( type = "viridis" ) +
+  theme( axis.title.x = element_blank(),
+         axis.text.x = element_blank(),
+         legend.position = "bottom" ) +
+  guides( fill = "none" )
+
+predmode.fig <- plot_grid( predmode_1.plot, predmode_4.plot, predmode_2.plot, predmode_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.75, align = c("hv") )
+
+ ggsave("fig3.png", plot = predmode.fig, dpi = 300, bg = "white", width = 6, height = 6)
+```
+
+
+```{r Figure 4: Displacement Rate - Prey Handling Time}
+preyh.df <- read.csv("1-4-1_displacement_preyh.csv")
+preyh_pctNCE.df <- read.csv("1-4-2_preyh_TPE_Opt.csv")
+
+optim <- baseline_summary.df[ 2, 5 ]
+optim_fitness <- baseline_summary.df[ 2, 6 ]
+optim_CE <- baseline_summary.df[ 2, 7 ]
+optim_NCE <- baseline_summary.df[ 2, 8 ]
+
+NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
+           ymin = 1 - optim_NCE, ymax = 0.998, 
+           color = "gray2", fill = "lightblue", alpha = 0.5 )
+fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = optim_CE, ymax = optim_CE + optim_fitness, 
+           color = "gray2", fill = "lightgreen", alpha = 0.5)
+CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = 0.001, ymax = optim_CE,
+           color = "gray2", fill = "red", alpha = 0.5)
+NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
+            label = as.character( round( optim_NCE, digits = 2 ) ), 
+            color = "blue",
+            hjust = "left", size = annot_size )
+fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2 - 0.025, 
+            label = as.character( round( optim_fitness, digits = 2 ) ),
+            color = "green",
+            hjust = "left", size = annot_size  )
+CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
+            label = as.character( round( optim_CE, digits = 2 ) - 0.01 ),
+            color = "red",
+            hjust = "left", size = annot_size )
+
+preyh_1.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
+  geom_line( aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
+  NCE_bar + fitness_bar + CE_bar +
+  NCE_label + fitness_label + CE_label +
+  annotate("text", x = 0.15, y = 0.05, label = "h = 8.0", size = 9/.pt ) +
+  ylab("Growth and Predation") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  theme( axis.title.x = element_blank(),
+         axis.text.x = element_blank(), legend.position = "bottom" ) + 
+  guides(color = "none")
+
+
+optim <- baseline_summary.df[ 4, 5 ]
+optim_fitness <- baseline_summary.df[ 4, 6 ]
+optim_CE <- baseline_summary.df[ 4, 7 ]
+optim_NCE <- baseline_summary.df[ 4, 8 ]
+
+NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
+           ymin = 1 - optim_NCE, ymax = 0.998, 
+           color = "gray2", fill = "lightblue", alpha = 0.5 )
+fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = optim_CE, ymax = optim_CE + optim_fitness, 
+           color = "gray2", fill = "lightgreen", alpha = 0.5)
+CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = 0.001, ymax = optim_CE,
+           color = "gray2", fill = "red", alpha = 0.5)
+NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
+            label = as.character( round( optim_NCE, digits = 2 ) ), 
+            color = "blue",
+            hjust = "left", size = annot_size )
+fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2 - 0.025, 
+            label = as.character( round( optim_fitness, digits = 2 ) ),
+            color = "green",
+            hjust = "left", size = annot_size  )
+CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
+            label = as.character( round( optim_CE, digits = 2 ) ),
+            color = "red",
+            hjust = "left", size = annot_size )
+
+preyh_2.plot <- ggplot( data = preyh.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
+  geom_line( aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
+  NCE_bar + fitness_bar + CE_bar +
+  NCE_label + fitness_label + CE_label +
+  annotate("text", x = 0.15, y = 0.05, label = "h = 1.0", size = 9/.pt ) +
+  ylab("Growth and Predation") +
+  xlab("Displacement Rate") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  theme( legend.position = "bottom" )
+
+
+preyh_3.plot <- ggplot( data = preyh_pctNCE.df, aes( x = 1/h ) ) +
+  geom_point( aes( y = NCE_TPE, fill = Fitness ), shape = 21, color = "black", size = 2.5) +
+  ylab("% NCE Contribution to TPE") +
+  xlab("Prey Res. Proc. Rate (1/h)") +
+  annotate('text', x = 1/1, y = 0.475, label = 'a') +
+  annotate('text', x = 1/8, y = 0.475, label = 'b') +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 1.5) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
+  scale_fill_continuous( type = "viridis" ) +
+  theme( legend.position = "bottom")
+
+preyh_4.plot <- ggplot( data = preyh_pctNCE.df, aes( x = 1/h ) ) +
+  geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, color = "black", size = 2.5 ) +
+  ylab("Optimal RITR") +
+  xlab("Prey Res. Proc. Rate (1/h)") +
+  annotate('text', x = 1/1, y = 0.4, label = 'a') +
+  annotate('text', x = 1/8, y = 0.2, label = 'b') +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 1.5) ) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
+  scale_fill_continuous( type = "viridis" ) +
+  theme( axis.title.x = element_blank(),
+         axis.text.x = element_blank(),
+         legend.position = "bottom" ) +
+  guides( fill = "none" )
+
+preyh.fig <- plot_grid( preyh_1.plot, preyh_4.plot, preyh_2.plot, preyh_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.75, align = c("hv") )
+
+ ggsave("fig4.png", plot = preyh.fig, dpi = 300, bg = "white", width = 6, height = 6)
+```
+
+
+
+```{r Figure 5: Refuge Use}
+refuge_linear_NoUse.df <- read.csv("2-1_refuge_linear_NoUse.csv")
+refuge_linear_AllUse.df <- read.csv("2-2_refuge_linear_AllUse.csv")
+refuge_nonlinear.df <- read.csv("2-3_refuge_nonlinear.csv")
+refuge_summary.df <- read.csv("2-4_refuge_summary.csv")
+
+
+optim <- refuge_summary.df[ 1, 2 ]
+optim_fitness <- refuge_summary.df[ 1, 3 ]
+optim_CE <- refuge_summary.df[ 1, 4 ]
+optim_NCE <- refuge_summary.df[ 1, 5 ]
+
+NCE_bar <- annotate( geom = "rect", xmin = 0, xmax = optim + 0.05, 
+           ymin = 1 - optim_NCE, ymax = 0.998, 
+           color = "gray2", fill = "lightblue", alpha = 0.5 )
+fitness_bar <- annotate(geom = "rect", xmin = 0, xmax = optim + 0.05,
+           ymin = optim_CE, ymax = optim_CE + optim_fitness, 
+           color = "gray2", fill = "lightgreen", alpha = 0.5)
+CE_bar <-  annotate(geom = "rect", xmin = 0, xmax = optim + 0.05,
+           ymin = 0.001, ymax = optim_CE,
+           color = "gray2", fill = "red", alpha = 0.5)
+NCE_label <-  annotate( "text", x = optim + 0.15, y = 1 - optim_NCE/2, 
+            label = as.character( round( optim_NCE, digits = 2 ) ), 
+            color = "blue",
+            hjust = "left", size = annot_size )
+fitness_label <-  annotate( "text", x = 0.075, y = 0.75, 
+            label = "0.50",
+            color = "green",
+            hjust = "left", size = annot_size  )
+CE_label <-  annotate( "text", x = 0.075, y = 0.25,
+            label = "0.50",
+            color = "red",
+            hjust = "left", size = annot_size )
+
+
+refuge_1.plot <- ggplot( data = refuge_linear_NoUse.df, aes( x = delta ) ) +
+  geom_line( aes( y = pred_curve, color = "Predation" ), linetype = "dotted" ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ) ) +
+  NCE_bar + fitness_bar + CE_bar +
+  fitness_label + CE_label +
+  ylab("") +
+  xlab("Prop. Time in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = NULL ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual( name = "Curve", values = c( "blue", "red" ) ) + 
+  theme( legend.position = "none", plot.margin = margin( 1, 15, 0, 10 )  )
+
+
+optim <- refuge_summary.df[ 2, 2 ]
+optim_fitness <- refuge_summary.df[ 2, 3 ]
+optim_CE <- refuge_summary.df[ 2, 4 ]
+optim_NCE <- refuge_summary.df[ 2, 5 ]
+
+NCE_bar <- annotate( geom = "rect", xmin = 0.95, xmax = 1, 
+           ymin = optim_CE + optim_fitness, ymax = 0.998, 
+           color = "gray2", fill = "lightblue", alpha = 0.5 )
+fitness_bar <- annotate(geom = "rect", xmin = 0.95, xmax = 1,
+           ymin = optim_CE, ymax = 1 - optim_NCE, 
+           color = "gray2", fill = "lightgreen", alpha = 0.5)
+CE_bar <-  annotate(geom = "rect", xmin = 0.95, xmax = 1,
+           ymin = 0.001, ymax = optim_CE,
+           color = "gray2", fill = "red", alpha = 0.5)
+NCE_label <-  annotate( "text", x = 0.775, y = 0.65, 
+            label = as.character( round( optim_NCE, digits = 2 ) ), 
+            color = "blue",
+            hjust = "left", size = annot_size )
+fitness_label <-  annotate( "text", x = 0.775, y = 0.05, 
+            label = as.character( round( optim_fitness, digits = 2 ) ),
+            color = "green",
+            hjust = "left", size = annot_size  )
+CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
+            label = "",
+            color = "red",
+            hjust = "left", size = annot_size )
+
+refuge_2.plot <- ggplot( data = refuge_linear_AllUse.df, aes( x = delta ) ) +
+  geom_line( aes( y = pred_curve, color = "Predation" ), linetype = "dotted" ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ) ) +
+  NCE_bar + fitness_bar + CE_bar +
+  NCE_label + fitness_label + CE_label +
+  ylab("Growth and Predation") +
+  xlab("Prop. Time in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = NULL ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual( name = "Curve", values = c( "blue", "red" ) ) + 
+  theme( legend.position = "none", plot.margin = margin( 1, 15, 0, 10 )  )
+
+optim <- refuge_summary.df[ 3, 2 ]
+optim_fitness <- refuge_summary.df[ 3, 3 ]
+optim_CE <- refuge_summary.df[ 3, 4 ]
+optim_NCE <- refuge_summary.df[ 3, 5 ]
+
+NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
+           ymin = optim_CE + optim_fitness, ymax = 0.998, 
+           color = "gray2", fill = "lightblue", alpha = 0.5 )
+fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = optim_CE, ymax = 1 - optim_NCE, 
+           color = "gray2", fill = "lightgreen", alpha = 0.5)
+CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = 0.001, ymax = optim_CE,
+           color = "gray2", fill = "red", alpha = 0.5)
+NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
+            label = as.character( round( optim_NCE, digits = 2 ) ), 
+            color = "blue",
+            hjust = "left", size = annot_size )
+fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + (optim_fitness)/2 - 0.025, 
+            label = as.character( round( optim_fitness, digits = 2 ) ),
+            color = "green",
+            hjust = "left", size = annot_size  )
+CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
+            label = as.character( round( optim_CE, digits = 2 ) - 0.01 ),
+            color = "red",
+            hjust = "left", size = annot_size )
+
+refuge_3.plot <- ggplot( data = refuge_nonlinear.df, aes( x = delta ) ) +
+  geom_line( aes( y = pred_curve, color = "Predation" ), linetype = "dotted" ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ) ) +
+  NCE_bar + fitness_bar + CE_bar +
+  NCE_label + fitness_label + CE_label +
+  ylab("") +
+  xlab("Prop. Time in Refuge") +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual( name = "Curve", values = c( "blue", "red" ) ) + 
+  theme( legend.position = "none", 
+         plot.margin = margin( 1, 15, 0, 10 ) )
+
+
+refuge.legend <- get_legend(refuge_1.plot + theme(legend.position = "bottom", legend.box.margin = margin(0, 0, 0, 0) ) )
+
+refuge.fig <- plot_grid( refuge_2.plot, refuge_1.plot, refuge_3.plot, nrow = 1, labels = "auto", label_y = 0.9, align = "hv" ) +
+  theme(plot.margin = unit( c(0, 0, 0, 0), "cm") )
+refuge.fig <- plot_grid( refuge.fig, refuge.legend, ncol = 1, rel_heights = c( 1, 0.1 ) )
+
+ggsave("fig5.png", plot = refuge.fig, dpi = 300, bg = "white", width = 9, height = 3.5)
+```
