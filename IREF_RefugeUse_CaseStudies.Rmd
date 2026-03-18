@@ -47,11 +47,11 @@ colnames(linear_growth_noRef.df) <- c("delta", "growth_curve", "pred_curve", "fi
 # Growth is the sum of the functional response in A and B
 linear_growth_noRef.df$delta <- delta_vec
 cost_constant_val <- 2
-linear_growth_noRef.df$growth_curve <- (1 - linear_growth_noRef.df$delta) * cost_constant_val * growth.curve( s = 1, R = 1, h = 1 ) + ( linear_growth_noRef.df$delta ) * growth.curve( s = 1, R = 0.1, h = 5 )
+linear_growth_noRef.df$growth_curve <- (1 - linear_growth_noRef.df$delta) * cost_constant_val * growth.curve( s = 1, R = 1, h = 1 ) + ( linear_growth_noRef.df$delta ) * growth.curve( s = 1, R = 0.5, h = 5 )
 
 # Mortality is the sum of risk in A and B
 mort_val_A <- 0.5 # Mortality outside the refuge during an hour
-mort_val_B <- 0 # Mortality inside the refuge during an hour
+mort_val_B <- 0.05 # Mortality inside the refuge during an hour
 linear_growth_noRef.df$pred_curve <- ( 1 - linear_growth_noRef.df$delta ) * mort_val_A + ( linear_growth_noRef.df$delta ) * mort_val_B
 
 # Calculate fitness and relative strength of NCEs and CEs
@@ -65,11 +65,11 @@ colnames(linear_growth_allRef.df) <- c("delta", "growth_curve", "pred_curve", "f
 
 # Growth is the sum of the functional response in A and B
 linear_growth_allRef.df$delta <- delta_vec
-linear_growth_allRef.df$growth_curve <- (1 - linear_growth_allRef.df$delta) * cost_constant_val * growth.curve( s = 1, R = 1, h = 1 ) + ( linear_growth_allRef.df$delta ) * growth.curve( s = 1, R = 0.1, h = 5 )
+linear_growth_allRef.df$growth_curve <- (1 - linear_growth_allRef.df$delta) * cost_constant_val * growth.curve( s = 1, R = 1, h = 1 ) + ( linear_growth_allRef.df$delta ) * growth.curve( s = 1, R = 6, h = 5 )
 
 # Mortality is the sum of risk in A and B
-mort_val_A <- 1 # Mortality outside the refuge during an hour
-mort_val_B <- 0 # Mortality inside the refuge during an hour
+mort_val_A <- 0.95 # Mortality outside the refuge during an hour
+mort_val_B <- 0.05 # Mortality inside the refuge during an hour
 linear_growth_allRef.df$pred_curve <- ( 1 - linear_growth_allRef.df$delta ) * mort_val_A + ( linear_growth_allRef.df$delta ) * mort_val_B
 
 # Calculate fitness and relative strength of NCEs and CEs
@@ -92,8 +92,8 @@ nonlinear.df$growth_curve <- growth.curve( s = 1, R = 1 - nonlinear.df$delta, h 
 nonlinear.df$growth_curve <- nonlinear.df$growth_curve * (0.9 / 0.16666667) + 0.1 # Anchor at 1
 
 # Mortality curve, which linearly declines from val_A to val_B
-mort_val_A <- 1 # Mortality outside the refuge during an hour
-mort_val_B <- 0 # Mortality inside the refuge during an hour
+mort_val_A <- 0.95 # Mortality outside the refuge during an hour
+mort_val_B <- 0.05 # Mortality inside the refuge during an hour
 nonlinear.df$pred_curve <- ( 1 - nonlinear.df$delta ) * mort_val_A + ( nonlinear.df$delta ) * mort_val_B
 
 # Calculate fitness and relative strength of NCEs and CEs

@@ -136,21 +136,37 @@ predmode.df$NCE_CE <- (1 - predmode.df$growth_curve)/predmode.df$pred_curve # NC
 Last, we manipulate prey handling time, $h$, to consider what would happen if prey had a faster resource intake rate ($1/h$).
 
 ```{r Displacement Case Studies}
-## 3) Change prey handling time by decreasing h
-prey_h.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
-colnames(prey_h.df) <- c("trait", "speed", "growth_curve", "pred_curve", "fitness", "NCE_CE")
-prey_h.df$trait <- trait.vec
-prey_h.df$speed <- speed.vec
-h_val <- 1 # Decreased from 8
+## 3) Change prey handling time by increasing h
+prey_h_1.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
+colnames(prey_h_1.df) <- c("trait", "speed", "growth_curve", "pred_curve", "fitness", "NCE_CE")
+prey_h_1.df$trait <- trait.vec
+prey_h_1.df$speed <- speed.vec
+h_val <- 1 
+cost_constant_val <- 2 
+v_val <- 0.2 # Predator params return to those from the second example 
+pred_constant_val <- 0.98058 # Controlling for absolute lethality
+
+
+prey_h_1.df$growth_curve <- cost_constant_val * growth.curve( s = prey_h_1.df$speed, R = R_val, h = h_val ) # Growth curve
+prey_h_1.df$pred_curve <- pred_constant_val * pred.curve( P = P_val, v = v_val, s = prey_h_1.df$speed ) # Mortality curve
+prey_h_1.df$fitness <- prey_h_1.df$growth_curve - prey_h_1.df$pred_curve # fitness
+prey_h_1.df$NCE_CE <- (1 - prey_h_1.df$growth_curve)/prey_h_1.df$pred_curve # NCE/CE
+
+# Increase h to 2
+prey_h_2.df <- as.data.frame( mat.or.vec( length( speed.vec ), 6) )
+colnames(prey_h_2.df) <- c("trait", "speed", "growth_curve", "pred_curve", "fitness", "NCE_CE")
+prey_h_2.df$trait <- trait.vec
+prey_h_2.df$speed <- speed.vec
+h_val <- 2 
 cost_constant_val <- 2 # Adjusted so that the growth curve anchors at 1 where s = 1000
 v_val <- 0.2 # Predator params return to those from the second example 
 pred_constant_val <- 0.98058 # Controlling for absolute lethality
 
 
-prey_h.df$growth_curve <- cost_constant_val * growth.curve( s = prey_h.df$speed, R = R_val, h = h_val ) # Growth curve
-prey_h.df$pred_curve <- pred_constant_val * pred.curve( P = P_val, v = v_val, s = prey_h.df$speed ) # Mortality curve
-prey_h.df$fitness <- prey_h.df$growth_curve - prey_h.df$pred_curve # fitness
-prey_h.df$NCE_CE <- (1 - prey_h.df$growth_curve)/prey_h.df$pred_curve # NCE/CE
+prey_h_2.df$growth_curve <- cost_constant_val * growth.curve( s = prey_h_2.df$speed, R = R_val, h = h_val ) # Growth curve
+prey_h_2.df$pred_curve <- pred_constant_val * pred.curve( P = P_val, v = v_val, s = prey_h_2.df$speed ) # Mortality curve
+prey_h_2.df$fitness <- prey_h_2.df$growth_curve - prey_h_2.df$pred_curve # fitness
+prey_h_2.df$NCE_CE <- (1 - prey_h_2.df$growth_curve)/prey_h_2.df$pred_curve # NCE/CE
 ```
 
 
@@ -160,13 +176,13 @@ Last, we will generate some useful summary stats for plotting.
 
 ```{r Summary Stats}
 ## Calculate summary stats for each data set, inc. optimum, fitness, CE and NCE strength,  etc
-displacement_summary.df <- as.data.frame( mat.or.vec( 4, 8) )
+displacement_summary.df <- as.data.frame( mat.or.vec( 5, 8) )
 colnames(displacement_summary.df) <- c("case", "v", "P", "h", "optim", "fitness", "CE", "NCE")
 
-displacement_summary.df$case <- c("base", "preddens", "predmode", "preyh")
-displacement_summary.df$v <- c("0.2", "0.2", "1", "0.2")
-displacement_summary.df$P <- c("0.45", "0.9", "0.9", "0.9")
-displacement_summary.df$h <- c("8", "8", "8", "1")
+displacement_summary.df$case <- c("base", "preddens", "predmode", "preyh_1", "preyh_2")
+displacement_summary.df$v <- c("0.2", "0.2", "1", "0.2", "0.2")
+displacement_summary.df$P <- c("0.45", "0.9", "0.9", "0.9", "0.9")
+displacement_summary.df$h <- c("8", "8", "8", "1", "2")
 
 #For base scenario:
 displacement_summary.df[1, 5] <- 
@@ -200,13 +216,22 @@ displacement_summary.df[3, 8] <-
 
 # For prey h manipulation:
 displacement_summary.df[4, 5] <- 
-  prey_h.df$trait[which(prey_h.df$fitness == max(prey_h.df$fitness))] # Optimum under 1 - NCE - CE
+  prey_h_1.df$trait[which(prey_h_1.df$fitness == max(prey_h_1.df$fitness))] # Optimum under 1 - NCE - CE
 displacement_summary.df[4, 6] <- 
-  prey_h.df$fitness[which(prey_h.df$fitness == max(prey_h.df$fitness))] # Fitness at optimum
+  prey_h_1.df$fitness[which(prey_h_1.df$fitness == max(prey_h_1.df$fitness))] # Fitness at optimum
 displacement_summary.df[4, 7] <- 
-  prey_h.df$pred_curve[which(prey_h.df$fitness == max(prey_h.df$fitness))] # CE strength at optimum
+  prey_h_1.df$pred_curve[which(prey_h_1.df$fitness == max(prey_h_1.df$fitness))] # CE strength at optimum
 displacement_summary.df[4, 8] <- 
   1 - displacement_summary.df[4, 7] - displacement_summary.df[4, 6] # NCE strength at optimum
+
+displacement_summary.df[5, 5] <- 
+  prey_h_2.df$trait[which(prey_h_2.df$fitness == max(prey_h_2.df$fitness))] # Optimum under 1 - NCE - CE
+displacement_summary.df[5, 6] <- 
+  prey_h_2.df$fitness[which(prey_h_2.df$fitness == max(prey_h_2.df$fitness))] # Fitness at optimum
+displacement_summary.df[5, 7] <- 
+  prey_h_2.df$pred_curve[which(prey_h_2.df$fitness == max(prey_h_2.df$fitness))] # CE strength at optimum
+displacement_summary.df[5, 8] <- 
+  1 - displacement_summary.df[5, 7] - displacement_summary.df[5, 6] # NCE strength at optimum
 ```
 
 ```{r NCE % of TPE}
@@ -271,14 +296,13 @@ colnames(preyh_pctNCE.df) <- c("h", "NCE", "CE", "NCE_TPE", "OptimalRITR", "Fitn
 for (i in 1:length( h_vec ) ){
 preyh_pctNCE.df[i, 1] <- h_vec[i]
 
-ph_growth_curve <- growth.curve( s = speed.vec, R = 1, h = h_vec[i] ) * (1 / max( growth.curve( s = speed.vec, R = 1, h = h_vec[i] ) ) ) # Growth curve
+ph_growth_curve <- growth.curve( s = speed.vec, R = 1, h = h_vec[i] ) * cost_constant_val # Growth curve
 ph_pred_curve <- pred_constant_val * pred.curve( P = 0.9, v = 0.2, s = speed.vec ) # Mortality curve
 ph_fitness <- ph_growth_curve - ph_pred_curve # fitness
-ph_NCE_TPE <- (1 - ph_growth_curve)/(ph_pred_curve + (1 - ph_growth_curve))# NCE/TPE
 
 preyh_pctNCE.df[i, 2] <- 1 - ph_growth_curve[ which.max( ph_fitness ) ]
 preyh_pctNCE.df[i, 3] <- ph_pred_curve[ which.max( ph_fitness ) ]
-preyh_pctNCE.df[i, 4] <- ph_NCE_TPE[ which.max(ph_fitness) ]
+preyh_pctNCE.df[i, 4] <- preyh_pctNCE.df[i, 2] / ( preyh_pctNCE.df[i, 2] + preyh_pctNCE.df[i, 3] )
 
 # Some other important metrics
 preyh_pctNCE.df[i, 5] <- speed.vec[ which.max(ph_fitness) ]
@@ -293,7 +317,8 @@ write.csv(preddens.df, "1-2-1_displacement_preddens.csv", row.names = FALSE)
 write.csv(preddens_pctNCE.df, "1-2-2_preddens_TPE_Opt.csv", row.names = FALSE)
 write.csv(predmode.df, "1-3-1_displacement_predmode.csv", row.names = FALSE)
 write.csv(predmode_pctNCE.df, "1-3-2_predmode_TPE_Opt.csv", row.names = FALSE)
-write.csv(prey_h.df, "1-4-1_displacement_preyh.csv", row.names = FALSE)
+write.csv(prey_h_1.df, "1-4-1_displacement_preyh_1.csv", row.names = FALSE)
+write.csv(prey_h_2.df, "1-4-1_displacement_preyh_2.csv", row.names = FALSE)
 write.csv(preyh_pctNCE.df, "1-4-2_preyh_TPE_Opt.csv", row.names = FALSE)
 write.csv(displacement_summary.df, "1-5_displacement_summary.csv", row.names = FALSE)
 ```
