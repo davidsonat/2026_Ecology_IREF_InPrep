@@ -38,7 +38,7 @@ fig1_a.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   scale_x_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ), labels = c( "Low", "", "High" ) ) + 
   scale_y_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual( name = "Curve", values = c( "blue", "red" ) ) + 
+  scale_color_manual( name = "Curve", values = c( "#56B4E9", "#D55E00" ) ) + 
   theme( plot.margin = margin(1, 15, 0, 10),
          legend.position = "none" )
 
@@ -46,36 +46,36 @@ fig1_b.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
   geom_line( aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
   geom_line( aes( y = fitness, color = "Fitness" ), linewidth = 1, linetype = "dashed" ) +
-  geom_vline( xintercept = optim, color = "green", linetype = "dashed" ) +
+  geom_vline( xintercept = optim, color = "#009E73", linetype = "dashed" ) +
   ylab("Growth and Predation") +
   xlab("Trait Expression") +
   scale_x_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ), labels = c( "Low", "", "High" ) ) + 
   scale_y_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual( name = "Curve", values = c( "green", "blue", "red" ) ) + 
+  scale_color_manual( name = "Curve", values = c( "#009E73", "#56B4E9", "#D55E00" ) ) + 
   theme( axis.title.y = element_blank(), legend.position = "none",
          plot.margin = margin( 1, 15, 0, 10 ) )
 
 NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
            ymin = 1 - optim_NCE, ymax = 0.998, 
-           color = "gray2", fill = "lightblue", alpha = 0.5 )
+           color = "gray2", fill = "#56B4E9", alpha = 0.75 )
 fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
            ymin = optim_CE, ymax = optim_CE + optim_fitness, 
-           color = "gray2", fill = "lightgreen", alpha = 0.5)
+           color = "gray2", fill = "#009E73", alpha = 0.75)
 CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
            ymin = 0.001, ymax = optim_CE,
-           color = "gray2", fill = "red", alpha = 0.5)
+           color = "gray2", fill = "#D55E00", alpha = 0.75)
 NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
             label = as.character( round( optim_NCE, digits = 2 ) ), 
-            color = "blue",
+            color = "#56B4E9",
             hjust = "left", size = annot_size )
 fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2, 
             label = as.character( round( optim_fitness, digits = 2 ) ),
-            color = "green",
+            color = "#009E73",
             hjust = "left", size = annot_size  )
 CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
             label = as.character( round( optim_CE, digits = 2 ) ),
-            color = "red",
+            color = "#D55E00",
             hjust = "left", size = annot_size )
 
 fig1_c.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
@@ -88,7 +88,7 @@ fig1_c.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   scale_x_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ), labels = c( "Low", "", "High" ) ) + 
   scale_y_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual( name = "Curve", values = c( "blue", "red" ) ) + 
+  scale_color_manual( name = "Curve", values = c( "#56B4E9", "#D55E00" ) ) + 
   theme( plot.margin = margin(1, 15, 0, 10),
          legend.position = "none" )
 
@@ -117,7 +117,7 @@ preddens_1.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
   scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  scale_color_manual(name = "Curve", values = c( "#56B4E9", "#D55E00" )) + 
   theme( axis.title.x = element_blank(),
          axis.text.x = element_blank(), 
          legend.position = "bottom",
@@ -134,24 +134,24 @@ optim_NCE <- baseline_summary.df[ 2, 8 ]
 
 NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
            ymin = 1 - optim_NCE, ymax = 0.998, 
-           color = "gray2", fill = "lightblue", alpha = 0.5 )
+           color = "gray2", fill = "#56B4E9", alpha = 0.75 )
 fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
            ymin = optim_CE, ymax = optim_CE + optim_fitness, 
-           color = "gray2", fill = "lightgreen", alpha = 0.5)
+           color = "gray2", fill = "#009E73", alpha = 0.75)
 CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
            ymin = 0.001, ymax = optim_CE,
-           color = "gray2", fill = "red", alpha = 0.5)
+           color = "gray2", fill = "#D55E00", alpha = 0.75)
 NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
             label = as.character( round( optim_NCE, digits = 2 ) ), 
-            color = "blue",
+            color = "#56B4E9",
             hjust = "left", size = annot_size )
 fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2, 
             label = as.character( round( optim_fitness, digits = 2 ) ),
-            color = "green",
-            hjust = "left", size = annot_size  )
+            color = "#009E73",
+            hjust = "left", size = annot_size )
 CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
             label = as.character( round( optim_CE, digits = 2 ) - 0.01 ),
-            color = "red",
+            color = "#D55E00",
             hjust = "left", size = annot_size )
 
 preddens_2.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
@@ -165,7 +165,7 @@ preddens_2.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
   scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  scale_color_manual(name = "Curve", values = c( "#56B4E9", "#D55E00" )) + 
   theme( legend.position = "bottom" )
 
 preddens_3.plot <- ggplot( data = preddens_pctNCE.df, aes( x = P ) ) +
@@ -208,24 +208,24 @@ optim_NCE <- baseline_summary.df[ 2, 8 ]
 
 NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
            ymin = 1 - optim_NCE, ymax = 0.998, 
-           color = "gray2", fill = "lightblue", alpha = 0.5 )
+           color = "gray2", fill = "#56B4E9", alpha = 0.75 )
 fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
            ymin = optim_CE, ymax = optim_CE + optim_fitness, 
-           color = "gray2", fill = "lightgreen", alpha = 0.5)
+           color = "gray2", fill = "#009E73", alpha = 0.75)
 CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
            ymin = 0.001, ymax = optim_CE,
-           color = "gray2", fill = "red", alpha = 0.5)
+           color = "gray2", fill = "#D55E00", alpha = 0.75)
 NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
             label = as.character( round( optim_NCE, digits = 2 ) ), 
-            color = "blue",
+            color = "#56B4E9",
             hjust = "left", size = annot_size )
 fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2 - 0.025, 
             label = as.character( round( optim_fitness, digits = 2 ) ),
-            color = "green",
+            color = "#009E73",
             hjust = "left", size = annot_size  )
 CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
             label = as.character( round( optim_CE, digits = 2 ) - 0.01 ),
-            color = "red",
+            color = "#D55E00",
             hjust = "left", size = annot_size )
 
 predmode_1.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
@@ -239,7 +239,7 @@ predmode_1.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
   scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  scale_color_manual(name = "Curve", values = c( "#56B4E9", "#D55E00" )) + 
   theme( axis.title.x = element_blank(),
          axis.text.x = element_blank(), legend.position = "bottom" ) + 
   guides(color = "none")
@@ -252,24 +252,24 @@ optim_NCE <- baseline_summary.df[ 3, 8 ]
 
 NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
            ymin = 1 - optim_NCE, ymax = 0.998, 
-           color = "gray2", fill = "lightblue", alpha = 0.5 )
+           color = "gray2", fill = "#56B4E9", alpha = 0.75 )
 fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
            ymin = optim_CE, ymax = optim_CE + optim_fitness, 
-           color = "gray2", fill = "lightgreen", alpha = 0.5)
+           color = "gray2", fill = "#009E73", alpha = 0.75)
 CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
            ymin = 0.001, ymax = optim_CE,
-           color = "gray2", fill = "red", alpha = 0.5)
+           color = "gray2", fill = "#D55E00", alpha = 0.75)
 NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
             label = as.character( round( optim_NCE, digits = 2 ) ), 
-            color = "blue",
+            color = "#56B4E9",
             hjust = "left", size = annot_size )
 fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2 - 0.025, 
             label = as.character( round( optim_fitness, digits = 2 ) ),
-            color = "green",
+            color = "#009E73",
             hjust = "left", size = annot_size  )
 CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
             label = as.character( round( optim_CE, digits = 2 ) ),
-            color = "red",
+            color = "#D55E00",
             hjust = "left", size = annot_size )
 
 predmode_2.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
@@ -283,7 +283,7 @@ predmode_2.plot <- ggplot( data = predmode.df, aes( x = trait ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
   scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  scale_color_manual(name = "Curve", values = c( "#56B4E9", "#D55E00" )) + 
   theme( legend.position = "bottom" )
 
 
@@ -319,11 +319,55 @@ predmode.fig <- plot_grid( predmode_1.plot, predmode_4.plot, predmode_2.plot, pr
 
 
 ```{r Figure 4: Displacement Rate - Prey Handling Time}
-preyh_1.df <- read.csv("1-4-1_displacement_preyh_1.csv")
-preyh_2.df <- read.csv("1-4-1_displacement_preyh_2.csv")
+preyh_1.df <- read.csv("1-4-1_displacement_preyh.csv")
 preyh_pctNCE.df <- read.csv("1-4-2_preyh_TPE_Opt.csv")
 
-# h = 1 first
+# h = 8 first
+optim <- baseline_summary.df[ 2, 5 ]
+optim_fitness <- baseline_summary.df[ 2, 6 ]
+optim_CE <- baseline_summary.df[ 2, 7 ]
+optim_NCE <- baseline_summary.df[ 2, 8 ]
+
+NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
+           ymin = 1 - optim_NCE, ymax = 0.998, 
+           color = "gray2", fill = "#56B4E9", alpha = 0.75 )
+fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = optim_CE, ymax = optim_CE + optim_fitness, 
+           color = "gray2", fill = "#009E73", alpha = 0.75)
+CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = 0.001, ymax = optim_CE,
+           color = "gray2", fill = "#D55E00", alpha = 0.75)
+NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
+            label = as.character( round( optim_NCE, digits = 2 ) ), 
+            color = "#56B4E9",
+            hjust = "left", size = annot_size )
+fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2 - 0.025, 
+            label = as.character( round( optim_fitness, digits = 2 ) ),
+            color = "#009E73",
+            hjust = "left", size = annot_size  )
+CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
+            label = as.character( round( optim_CE, digits = 2 ) - 0.01 ),
+            color = "#D55E00",
+            hjust = "left", size = annot_size )
+
+preyh_1.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
+  geom_line( data = preyh_1.df, aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
+  NCE_bar + fitness_bar + CE_bar +
+  NCE_label + fitness_label + CE_label +
+  annotate("text", x = 0.2, y = 0.05, label = "1/h = 0.125", size = 9/.pt ) +
+  ylab("Rel. Growth and Predation") +
+  xlab("Displacement Rate (s)" ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "#56B4E9", "#D55E00" )) + 
+  theme( axis.title.x = element_blank(),
+         axis.text.x = element_blank(), legend.position = "bottom" ) + 
+  guides(color = "none")
+
+
+# Then h = 2
 optim <- baseline_summary.df[ 4, 5 ]
 optim_fitness <- baseline_summary.df[ 4, 6 ]
 optim_CE <- baseline_summary.df[ 4, 7 ]
@@ -331,27 +375,27 @@ optim_NCE <- baseline_summary.df[ 4, 8 ]
 
 NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
            ymin = 1 - optim_NCE, ymax = 0.998, 
-           color = "gray2", fill = "lightblue", alpha = 0.5 )
+           color = "gray2", fill = "#56B4E9", alpha = 0.75 )
 fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
            ymin = optim_CE, ymax = optim_CE + optim_fitness, 
-           color = "gray2", fill = "lightgreen", alpha = 0.5)
+           color = "gray2", fill = "#009E73", alpha = 0.75)
 CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
            ymin = 0.001, ymax = optim_CE,
-           color = "gray2", fill = "red", alpha = 0.5)
+           color = "gray2", fill = "#D55E00", alpha = 0.75)
 NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
             label = as.character( round( optim_NCE, digits = 2 ) ), 
-            color = "blue",
+            color = "#56B4E9",
             hjust = "left", size = annot_size )
 fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2 - 0.025, 
             label = as.character( round( optim_fitness, digits = 2 ) ),
-            color = "green",
+            color = "#009E73",
             hjust = "left", size = annot_size  )
 CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
-            label = as.character( round( optim_CE, digits = 2 ) - 0.01 ),
-            color = "red",
+            label = as.character( round( optim_CE, digits = 2 ) ),
+            color = "#D55E00",
             hjust = "left", size = annot_size )
 
-preyh_1.plot <- ggplot( data = preyh_1.df, aes( x = trait ) ) +
+preyh_2.plot <- ggplot( data = preyh_1.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
   geom_line( aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
   NCE_bar + fitness_bar + CE_bar +
@@ -362,52 +406,7 @@ preyh_1.plot <- ggplot( data = preyh_1.df, aes( x = trait ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
   scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
-  theme( axis.title.x = element_blank(),
-         axis.text.x = element_blank(), legend.position = "bottom" ) + 
-  guides(color = "none")
-
-
-# Then h = 2
-optim <- baseline_summary.df[ 5, 5 ]
-optim_fitness <- baseline_summary.df[ 5, 6 ]
-optim_CE <- baseline_summary.df[ 5, 7 ]
-optim_NCE <- baseline_summary.df[ 5, 8 ]
-
-NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
-           ymin = 1 - optim_NCE, ymax = 0.998, 
-           color = "gray2", fill = "lightblue", alpha = 0.5 )
-fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
-           ymin = optim_CE, ymax = optim_CE + optim_fitness, 
-           color = "gray2", fill = "lightgreen", alpha = 0.5)
-CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
-           ymin = 0.001, ymax = optim_CE,
-           color = "gray2", fill = "red", alpha = 0.5)
-NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
-            label = as.character( round( optim_NCE, digits = 2 ) ), 
-            color = "blue",
-            hjust = "left", size = annot_size )
-fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2 - 0.025, 
-            label = as.character( round( optim_fitness, digits = 2 ) ),
-            color = "green",
-            hjust = "left", size = annot_size  )
-CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
-            label = as.character( round( optim_CE, digits = 2 ) ),
-            color = "red",
-            hjust = "left", size = annot_size )
-
-preyh_2.plot <- ggplot( data = preyh_2.df, aes( x = trait ) ) +
-  geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
-  geom_line( aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
-  NCE_bar + fitness_bar + CE_bar +
-  NCE_label + fitness_label + CE_label +
-  annotate("text", x = 0.15, y = 0.05, label = "1/h = 0.5", size = 9/.pt ) +
-  ylab("Rel. Growth and Predation") +
-  xlab("Displacement Rate (s)" ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
-  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
-  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual(name = "Curve", values = c( "blue", "red" )) + 
+  scale_color_manual(name = "Curve", values = c( "#56B4E9", "#D55E00" )) + 
   theme( legend.position = "bottom" )
 
 
@@ -415,8 +414,8 @@ preyh_3.plot <- ggplot( data = preyh_pctNCE.df, aes( x = 1/h ) ) +
   geom_point( aes( y = NCE_TPE, fill = Fitness ), shape = 21, color = "black", size = 2, stroke = 0.5 ) +
   ylab("% NCE Contribution to TPE") +
   xlab( "Prey Res. Proc. Rate (1/h)" ) +
-  annotate('text', x = 1/2, y = 0.75, label = 'b') +
-  annotate('text', x = 1/1, y = 0.5, label = 'a') +
+  annotate('text', x = 1/1, y = 0.425, label = 'b') +
+  annotate('text', x = 1/8, y = 0.9, label = 'a') +
   scale_x_continuous(expand = c(0, 0), limits = c(0, 1.5) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
   scale_fill_continuous( type = "viridis" ) +
@@ -426,8 +425,8 @@ preyh_4.plot <- ggplot( data = preyh_pctNCE.df, aes( x = 1/h ) ) +
   geom_point( aes( y = OptimalRITR, fill = Fitness ), shape = 21, color = "black", size = 2, stroke = 0.5 ) +
   ylab("Optimal RITR") +
   xlab( "Prey Res. Proc. Rate (1/h)" ) +
-  annotate('text', x = 1/2, y = 0.4, label = 'b') +
-  annotate('text', x = 1/1, y = 0.6, label = 'a') +
+  annotate('text', x = 1/1, y = 0.6, label = 'b') +
+  annotate('text', x = 1/8, y = 0.2, label = 'a') +
   scale_x_continuous(expand = c(0, 0), limits = c(0, 1.5) ) + 
   scale_y_reverse(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
   scale_fill_continuous( type = "viridis" ) +
@@ -457,24 +456,24 @@ optim_NCE <- refuge_summary.df[ 1, 5 ]
 
 NCE_bar <- annotate( geom = "rect", xmin = 0, xmax = optim + 0.05, 
            ymin = 1 - optim_NCE, ymax = 0.998, 
-           color = "gray2", fill = "lightblue", alpha = 0.5 )
+           color = "gray2", fill = "#56B4E9", alpha = 0.75 )
 fitness_bar <- annotate(geom = "rect", xmin = 0, xmax = optim + 0.05,
            ymin = optim_CE, ymax = optim_CE + optim_fitness, 
-           color = "gray2", fill = "lightgreen", alpha = 0.5)
+           color = "gray2", fill = "#009E73", alpha = 0.75)
 CE_bar <-  annotate(geom = "rect", xmin = 0, xmax = optim + 0.05,
            ymin = 0.001, ymax = optim_CE,
-           color = "gray2", fill = "red", alpha = 0.5)
+           color = "gray2", fill = "#D55E00", alpha = 0.75)
 NCE_label <-  annotate( "text", x = optim + 0.15, y = 1 - optim_NCE/2, 
             label = as.character( round( optim_NCE, digits = 2 ) ), 
-            color = "blue",
+            color = "#56B4E9",
             hjust = "left", size = annot_size )
 fitness_label <-  annotate( "text", x = 0.075, y = 0.75, 
             label = "0.50",
-            color = "green",
+            color = "#009E73",
             hjust = "left", size = annot_size  )
 CE_label <-  annotate( "text", x = 0.075, y = 0.25,
             label = "0.50",
-            color = "red",
+            color = "#D55E00",
             hjust = "left", size = annot_size )
 
 
@@ -488,7 +487,7 @@ refuge_1.plot <- ggplot( data = refuge_linear_NoUse.df, aes( x = delta ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = NULL ) + 
   scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual( name = "Curve", values = c( "blue", "red" ) ) + 
+  scale_color_manual( name = "Curve", values = c( "#56B4E9", "#D55E00" ) ) + 
   theme( legend.position = "none", plot.margin = margin( 1, 15, 0, 10 )  )
 
 
@@ -499,24 +498,24 @@ optim_NCE <- refuge_summary.df[ 2, 5 ]
 
 NCE_bar <- annotate( geom = "rect", xmin = 0.95, xmax = 1, 
            ymin = optim_CE + optim_fitness, ymax = 0.998, 
-           color = "gray2", fill = "lightblue", alpha = 0.5 )
+           color = "gray2", fill = "#56B4E9", alpha = 0.75 )
 fitness_bar <- annotate(geom = "rect", xmin = 0.95, xmax = 1,
            ymin = optim_CE, ymax = 1 - optim_NCE, 
-           color = "gray2", fill = "lightgreen", alpha = 0.5)
+           color = "gray2", fill = "#009E73", alpha = 0.75)
 CE_bar <-  annotate(geom = "rect", xmin = 0.95, xmax = 1,
            ymin = 0.001, ymax = optim_CE,
-           color = "gray2", fill = "red", alpha = 0.5)
+           color = "gray2", fill = "#D55E00", alpha = 0.75)
 NCE_label <-  annotate( "text", x = 0.775, y = 0.65, 
             label = as.character( round( optim_NCE, digits = 2 ) ), 
-            color = "blue",
+            color = "#56B4E9",
             hjust = "left", size = annot_size )
 fitness_label <-  annotate( "text", x = 0.775, y = 0.05, 
             label = as.character( round( optim_fitness, digits = 2 ) ),
-            color = "green",
+            color = "#009E73",
             hjust = "left", size = annot_size  )
 CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
             label = "",
-            color = "red",
+            color = "#D55E00",
             hjust = "left", size = annot_size )
 
 refuge_2.plot <- ggplot( data = refuge_linear_AllUse.df, aes( x = delta ) ) +
@@ -529,7 +528,7 @@ refuge_2.plot <- ggplot( data = refuge_linear_AllUse.df, aes( x = delta ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = NULL ) + 
   scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual( name = "Curve", values = c( "blue", "red" ) ) + 
+  scale_color_manual( name = "Curve", values = c( "#56B4E9", "#D55E00" ) ) + 
   theme( legend.position = "none", plot.margin = margin( 1, 15, 0, 10 )  )
 
 optim <- refuge_summary.df[ 3, 2 ]
@@ -539,24 +538,24 @@ optim_NCE <- refuge_summary.df[ 3, 5 ]
 
 NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
            ymin = optim_CE + optim_fitness, ymax = 0.998, 
-           color = "gray2", fill = "lightblue", alpha = 0.5 )
+           color = "gray2", fill = "#56B4E9", alpha = 0.75 )
 fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
            ymin = optim_CE, ymax = 1 - optim_NCE, 
-           color = "gray2", fill = "lightgreen", alpha = 0.5)
+           color = "gray2", fill = "#009E73", alpha = 0.75)
 CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
            ymin = 0.001, ymax = optim_CE,
-           color = "gray2", fill = "red", alpha = 0.5)
+           color = "gray2", fill = "#D55E00", alpha = 0.75)
 NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
             label = as.character( round( optim_NCE, digits = 2 ) ), 
-            color = "blue",
+            color = "#56B4E9",
             hjust = "left", size = annot_size )
 fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + (optim_fitness)/2 - 0.025, 
             label = as.character( round( optim_fitness, digits = 2 ) ),
-            color = "green",
+            color = "#009E73",
             hjust = "left", size = annot_size  )
 CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
             label = as.character( round( optim_CE, digits = 2 ) - 0.01 ),
-            color = "red",
+            color = "#D55E00",
             hjust = "left", size = annot_size )
 
 refuge_3.plot <- ggplot( data = refuge_nonlinear.df, aes( x = delta ) ) +
@@ -569,7 +568,7 @@ refuge_3.plot <- ggplot( data = refuge_nonlinear.df, aes( x = delta ) ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(0, 0.5, 1) ) + 
   scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual( name = "Curve", values = c( "blue", "red" ) ) + 
+  scale_color_manual( name = "Curve", values = c( "#56B4E9", "#D55E00" ) ) + 
   theme( legend.position = "none", 
          plot.margin = margin( 1, 15, 0, 10 ) )
 
