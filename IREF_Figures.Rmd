@@ -39,8 +39,7 @@ fig1_a.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   scale_y_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
   scale_color_manual( name = "Curve", values = c( "#56B4E9", "#D55E00" ) ) + 
-  theme( plot.margin = margin(1, 15, 0, 10),
-         legend.position = "none" )
+  guides(color = "none")
 
 fig1_b.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
@@ -53,8 +52,7 @@ fig1_b.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   scale_y_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
   scale_color_manual( name = "Curve", values = c( "#009E73", "#56B4E9", "#D55E00" ) ) + 
-  theme( axis.title.y = element_blank(), legend.position = "none",
-         plot.margin = margin( 1, 15, 0, 10 ) )
+  theme( axis.title.y = element_blank(), legend.position = "bottom" )
 
 NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
            ymin = 1 - optim_NCE, ymax = 0.998, 
@@ -89,15 +87,15 @@ fig1_c.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   scale_y_continuous( expand = c( 0, 0 ), breaks = c( 0, 0.5, 1 ) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
   scale_color_manual( name = "Curve", values = c( "#56B4E9", "#D55E00" ) ) + 
-  theme( plot.margin = margin(1, 15, 0, 10),
-         legend.position = "none" )
+  guides(color = "none")
 
 fig1.legend <- get_legend(fig1_b.plot + theme(legend.position = "bottom", legend.box.margin = margin(0, 0, 0, 0) ) )
+fig1_b.plot <- fig1_b.plot + guides(color = "none")
 
-fig1.plot <- plot_grid( fig1_a.plot, fig1_b.plot, fig1_c.plot, nrow = 1, labels = "auto", label_y = 0.9, align = "hv" ) + theme(plot.margin = unit( c(0, 0, 0, 0), "cm") )
+fig1.plot <- plot_grid( fig1_a.plot, fig1_b.plot, fig1_c.plot, ncol = 3, labels = "auto", label_y = 0.95, align = "hv", scale = 0.9 )
 fig1.plot <- plot_grid( fig1.plot, fig1.legend, ncol = 1, rel_heights = c( 1, 0.1 ) )
 
-# ggsave("fig1.png", plot = fig1.plot, dpi = 300, width = 9, height = 3.5, bg = "white")
+# ggsave("fig1.png", plot = fig1.plot, dpi = 300, width = 9.5, height = 3.5, bg = "white")
 ```
 
 
@@ -119,12 +117,8 @@ preddens_1.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
   scale_color_manual(name = "Curve", values = c( "#56B4E9", "#D55E00" )) + 
   theme( axis.title.x = element_blank(),
-         axis.text.x = element_blank(), 
-         legend.position = "bottom",
-         legend.key = element_rect( fill = "white" ), 
-         legend.text = element_text( color = "white" ),
-         legend.title = element_text( color = "white" ) ) +
-  guides(color = guide_legend(override.aes = list(color = NA)))
+         axis.text.x = element_blank() ) + 
+  guides(color = "none")
 
 
 optim <- baseline_summary.df[ 2, 5 ]
@@ -174,7 +168,7 @@ preddens_3.plot <- ggplot( data = preddens_pctNCE.df, aes( x = P ) ) +
   xlab("Predator Density (P)" ) +
   annotate('text', x = 0.45, y = 0.425, label = 'a') +
   annotate('text', x = 0.9, y = 0.45, label = 'b') +
-  scale_x_continuous(expand = c(0, 0) ) + 
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 2) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
   scale_fill_continuous( type = "viridis" ) +
   theme( legend.position = "bottom")
@@ -185,15 +179,24 @@ preddens_4.plot <- ggplot( data = preddens_pctNCE.df, aes( x = P ) ) +
   xlab("") +
   annotate('text', x = 0.45, y = 0.325, label = 'a') +
   annotate('text', x = 0.9, y = 0.225, label = 'b') +
-  scale_x_continuous(expand = c(0, 0) ) + 
+  annotate("segment", x = 0.05, y = 0.85, xend = 0.05, yend = 0.95,
+         arrow = arrow(type = "closed", length = unit(0.02, "npc")),  color = "#D55E00") +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 2) ) + 
   scale_y_reverse(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
   scale_fill_continuous( type = "viridis" ) +
-  theme( legend.position = "bottom" ) +
   guides(fill = "none")
 
-preddens.fig <- plot_grid( preddens_1.plot, preddens_4.plot, preddens_2.plot, preddens_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.75, align = c("hv") )
+# chop off the legends
+pd_1.legend <- get_legend(preddens_2.plot + theme(legend.position = "bottom", legend.box.margin = margin(0, 0, 0, 0) ) )
+preddens_2.plot <- preddens_2.plot + guides( color = "none" )
+pd_2.legend <- get_legend(preddens_3.plot + theme(legend.position = "bottom", legend.box.margin = margin(0, 0, 0, 0) ) )
+preddens_3.plot <- preddens_3.plot + guides( fill = "none" )
 
-# ggsave("fig2.png", plot = preddens.fig, dpi = 300, bg = "white", width = 6, height = 6)
+preddens.fig <- plot_grid( preddens_1.plot, preddens_4.plot, preddens_2.plot, preddens_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.75, align = c("hv") )
+pd.legend <- plot_grid( pd_1.legend, pd_2.legend, ncol = 2 )
+preddens.fig <- plot_grid(preddens.fig, pd.legend, nrow = 2, rel_heights = c( 1, 0.1 ) )
+
+ggsave("fig2.png", plot = preddens.fig, dpi = 300, bg = "white", width = 15, height = 15, units = "cm")
 ```
 
 
@@ -241,7 +244,7 @@ predmode_1.plot <- ggplot( data = preddens.df, aes( x = trait ) ) +
   coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
   scale_color_manual(name = "Curve", values = c( "#56B4E9", "#D55E00" )) + 
   theme( axis.title.x = element_blank(),
-         axis.text.x = element_blank(), legend.position = "bottom" ) + 
+         axis.text.x = element_blank() ) + 
   guides(color = "none")
 
 
@@ -308,66 +311,29 @@ predmode_4.plot <- ggplot( data = predmode_pctNCE.df, aes( x = v ) ) +
   scale_y_reverse(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
   scale_fill_continuous( type = "viridis" ) +
   theme( axis.title.x = element_blank(),
-         axis.text.x = element_blank(),
-         legend.position = "bottom" ) +
+         axis.text.x = element_blank() ) +
   guides( fill = "none" )
 
-predmode.fig <- plot_grid( predmode_1.plot, predmode_4.plot, predmode_2.plot, predmode_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.75, align = c("hv") )
+# chop off the legends
+pm_1.legend <- get_legend(predmode_2.plot + theme(legend.position = "bottom", legend.box.margin = margin(0, 0, 0, 0) ) )
+predmode_2.plot <- predmode_2.plot + guides( color = "none" )
+pm_2.legend <- get_legend(predmode_3.plot + theme(legend.position = "bottom", legend.box.margin = margin(0, 0, 0, 0) ) )
+predmode_3.plot <- predmode_3.plot + guides( fill = "none" )
 
-# ggsave("fig3.png", plot = predmode.fig, dpi = 300, bg = "white", width = 6, height = 6)
+predmode.fig <- plot_grid( predmode_1.plot, predmode_4.plot, predmode_2.plot, predmode_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.75, align = c("hv") )
+pm.legend <- plot_grid( pm_1.legend, pm_2.legend, ncol = 2 )
+predmode.fig <- plot_grid(predmode.fig, pm.legend, nrow = 2, rel_heights = c( 1, 0.1 ) )
+
+# ggsave("fig3.png", plot = predmode.fig, dpi = 300, bg = "white", width = 15, height = 15, units = "cm")
 ```
 
 
 ```{r Figure 4: Displacement Rate - Prey Handling Time}
-preyh_1.df <- read.csv("1-4-1_displacement_preyh.csv")
+preyh_1.df <- read.csv("1-4-1_displacement_preyh_1.csv")
+preyh_2.df <- read.csv("1-4-1_displacement_preyh_2.csv")
 preyh_pctNCE.df <- read.csv("1-4-2_preyh_TPE_Opt.csv")
 
-# h = 8 first
-optim <- baseline_summary.df[ 2, 5 ]
-optim_fitness <- baseline_summary.df[ 2, 6 ]
-optim_CE <- baseline_summary.df[ 2, 7 ]
-optim_NCE <- baseline_summary.df[ 2, 8 ]
-
-NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
-           ymin = 1 - optim_NCE, ymax = 0.998, 
-           color = "gray2", fill = "#56B4E9", alpha = 0.75 )
-fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
-           ymin = optim_CE, ymax = optim_CE + optim_fitness, 
-           color = "gray2", fill = "#009E73", alpha = 0.75)
-CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
-           ymin = 0.001, ymax = optim_CE,
-           color = "gray2", fill = "#D55E00", alpha = 0.75)
-NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
-            label = as.character( round( optim_NCE, digits = 2 ) ), 
-            color = "#56B4E9",
-            hjust = "left", size = annot_size )
-fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2 - 0.025, 
-            label = as.character( round( optim_fitness, digits = 2 ) ),
-            color = "#009E73",
-            hjust = "left", size = annot_size  )
-CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
-            label = as.character( round( optim_CE, digits = 2 ) - 0.01 ),
-            color = "#D55E00",
-            hjust = "left", size = annot_size )
-
-preyh_1.plot <- ggplot( data = baseline.df, aes( x = trait ) ) +
-  geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
-  geom_line( data = preyh_1.df, aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
-  NCE_bar + fitness_bar + CE_bar +
-  NCE_label + fitness_label + CE_label +
-  annotate("text", x = 0.2, y = 0.05, label = "1/h = 0.125", size = 9/.pt ) +
-  ylab("Rel. Growth and Predation") +
-  xlab("Displacement Rate (s)" ) +
-  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
-  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
-  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
-  scale_color_manual(name = "Curve", values = c( "#56B4E9", "#D55E00" )) + 
-  theme( axis.title.x = element_blank(),
-         axis.text.x = element_blank(), legend.position = "bottom" ) + 
-  guides(color = "none")
-
-
-# Then h = 2
+# h = 1 first
 optim <- baseline_summary.df[ 4, 5 ]
 optim_fitness <- baseline_summary.df[ 4, 6 ]
 optim_CE <- baseline_summary.df[ 4, 7 ]
@@ -391,16 +357,61 @@ fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitne
             color = "#009E73",
             hjust = "left", size = annot_size  )
 CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
+            label = as.character( round( optim_CE, digits = 2 ) - 0.01 ),
+            color = "#D55E00",
+            hjust = "left", size = annot_size )
+
+preyh_1.plot <- ggplot( data = preyh_1.df, aes( x = trait ) ) +
+  geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
+  geom_line( data = preyh_1.df, aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
+  NCE_bar + fitness_bar + CE_bar +
+  NCE_label + fitness_label + CE_label +
+  annotate("text", x = 0.2, y = 0.05, label = "1/h = 1.0", size = 9/.pt ) +
+  ylab("Growth and Predation") +
+  xlab("Displacement Rate (s)" ) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
+  scale_y_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1) ) +
+  coord_cartesian( xlim = c(0, 1), ylim = c(0, 1) ) +
+  scale_color_manual(name = "Curve", values = c( "#56B4E9", "#D55E00" )) + 
+  theme( axis.title.x = element_blank(),
+         axis.text.x = element_blank(), legend.position = "bottom" ) + 
+  guides(color = "none")
+
+
+# Then h = 2
+optim <- baseline_summary.df[ 5, 5 ]
+optim_fitness <- baseline_summary.df[ 5, 6 ]
+optim_CE <- baseline_summary.df[ 5, 7 ]
+optim_NCE <- baseline_summary.df[ 5, 8 ]
+
+NCE_bar <- annotate( geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025, 
+           ymin = 1 - optim_NCE, ymax = 0.998, 
+           color = "gray2", fill = "#56B4E9", alpha = 0.75 )
+fitness_bar <- annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = optim_CE, ymax = optim_CE + optim_fitness, 
+           color = "gray2", fill = "#009E73", alpha = 0.75)
+CE_bar <-  annotate(geom = "rect", xmin = optim - 0.025, xmax = optim + 0.025,
+           ymin = 0.001, ymax = optim_CE,
+           color = "gray2", fill = "#D55E00", alpha = 0.75)
+NCE_label <-  annotate( "text", x = optim + 0.05, y = 1 - optim_NCE/2, 
+            label = as.character( round( optim_NCE, digits = 2 ) ), 
+            color = "#56B4E9",
+            hjust = "left", size = annot_size )
+fitness_label <-  annotate( "text", x = optim + 0.05, y = optim_CE + optim_fitness/2 - 0.025, 
+            label = as.character( round( optim_fitness, digits = 2 ) ),
+            color = "#009E73",
+            hjust = "left", size = annot_size  )
+CE_label <-  annotate( "text", x = optim + 0.05, y = optim_CE/2 - 0.05,
             label = as.character( round( optim_CE, digits = 2 ) ),
             color = "#D55E00",
             hjust = "left", size = annot_size )
 
-preyh_2.plot <- ggplot( data = preyh_1.df, aes( x = trait ) ) +
+preyh_2.plot <- ggplot( data = preyh_2.df, aes( x = trait ) ) +
   geom_line( aes( y = growth_curve, color = "Growth" ), linewidth = 1 ) +
   geom_line( aes( y = pred_curve, color = "Predation" ), linewidth = 1, linetype = "dotted" ) +
   NCE_bar + fitness_bar + CE_bar +
   NCE_label + fitness_label + CE_label +
-  annotate("text", x = 0.15, y = 0.05, label = "1/h = 1.0", size = 9/.pt ) +
+  annotate("text", x = 0.15, y = 0.05, label = "1/h = 0.5", size = 9/.pt ) +
   ylab("Rel. Growth and Predation") +
   xlab("Displacement Rate (s)" ) +
   scale_x_continuous(expand = c(0, 0), breaks = c(0, 0.5, 1), labels = c(1000, 500, 0) ) + 
@@ -415,7 +426,7 @@ preyh_3.plot <- ggplot( data = preyh_pctNCE.df, aes( x = 1/h ) ) +
   ylab("% NCE Contribution to TPE") +
   xlab( "Prey Res. Proc. Rate (1/h)" ) +
   annotate('text', x = 1/1, y = 0.425, label = 'b') +
-  annotate('text', x = 1/8, y = 0.9, label = 'a') +
+  annotate('text', x = 1/2, y = 0.75, label = 'a') +
   scale_x_continuous(expand = c(0, 0), limits = c(0, 1.5) ) + 
   scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.25, 0.50, 0.75, 1) ) +
   scale_fill_continuous( type = "viridis" ) +
@@ -426,7 +437,7 @@ preyh_4.plot <- ggplot( data = preyh_pctNCE.df, aes( x = 1/h ) ) +
   ylab("Optimal RITR") +
   xlab( "Prey Res. Proc. Rate (1/h)" ) +
   annotate('text', x = 1/1, y = 0.6, label = 'b') +
-  annotate('text', x = 1/8, y = 0.2, label = 'a') +
+  annotate('text', x = 1/2, y = 0.25, label = 'a') +
   scale_x_continuous(expand = c(0, 0), limits = c(0, 1.5) ) + 
   scale_y_reverse(expand = c(0, 0), limits = c(0, 1), breaks = c(0, 0.50, 1), labels = c(0, 500, 1000) ) +
   scale_fill_continuous( type = "viridis" ) +
@@ -435,9 +446,20 @@ preyh_4.plot <- ggplot( data = preyh_pctNCE.df, aes( x = 1/h ) ) +
          legend.position = "bottom" ) +
   guides( fill = "none" )
 
-preyh.fig <- plot_grid( preyh_1.plot, preyh_4.plot, preyh_2.plot, preyh_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.75, align = c("hv") )
 
-ggsave("fig4.png", plot = preyh.fig, dpi = 300, bg = "white", width = 6, height = 6)
+# chop off the legends
+ph_1.legend <- get_legend(preyh_2.plot + theme(legend.position = "bottom", legend.box.margin = margin(0, 0, 0, 0) ) )
+preyh_2.plot <- preyh_2.plot + guides( color = "none" )
+ph_2.legend <- get_legend(preyh_3.plot + theme(legend.position = "bottom", legend.box.margin = margin(0, 0, 0, 0) ) )
+preyh_3.plot <- preyh_3.plot + guides( fill = "none" )
+
+preyh.fig <- plot_grid( preyh_1.plot, preyh_4.plot, preyh_2.plot, preyh_3.plot, ncol = 2, labels = c("a", "c", "b", "d"), hjust = -1.75, align = c("hv") )
+ph.legend <- plot_grid( ph_1.legend, ph_2.legend, ncol = 2 )
+preyh.fig <- plot_grid(preyh.fig, ph.legend, nrow = 2, rel_heights = c( 1, 0.1 ) )
+
+
+
+ggsave("fig4.png", plot = preyh.fig, dpi = 300, bg = "white", width = 15, height = 15, units = "cm")
 ```
 
 
@@ -575,9 +597,9 @@ refuge_3.plot <- ggplot( data = refuge_nonlinear.df, aes( x = delta ) ) +
 
 refuge.legend <- get_legend(refuge_1.plot + theme(legend.position = "bottom", legend.box.margin = margin(0, 0, 0, 0) ) )
 
-refuge.fig <- plot_grid( refuge_2.plot, refuge_1.plot, refuge_3.plot, nrow = 1, labels = "auto", label_y = 0.9, align = "hv" ) +
+refuge.fig <- plot_grid( refuge_2.plot, refuge_1.plot, refuge_3.plot, nrow = 1, labels = "auto", label_y = 0.95, align = "hv" ) +
   theme(plot.margin = unit( c(0, 0, 0, 0), "cm") )
 refuge.fig <- plot_grid( refuge.fig, refuge.legend, ncol = 1, rel_heights = c( 1, 0.1 ) )
 
-# ggsave("fig5.png", plot = refuge.fig, dpi = 300, bg = "white", width = 9, height = 3.5)
+ggsave("fig5.png", plot = refuge.fig, dpi = 300, bg = "white", width = 9.5, height = 3.5)
 ```
